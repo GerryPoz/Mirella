@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mirella - Prodotti Agricoli</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="nav-brand">
+                <h1>🌱 Mirella Agricola</h1>
+            </div>
+            <div class="nav-links">
+                <a href="#home">Home</a>
+                <a href="#products">Prodotti</a>
+                <a href="#cart" id="cart-link">Carrello (<span id="cart-count">0</span>)</a>
+                <a href="#login" id="login-link">Accedi</a>
+                <a href="#profile" id="profile-link" style="display:none">Profilo</a>
+                <button id="logout-btn" style="display:none">Esci</button>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Home Section -->
+        <section id="home" class="section active">
+            <div class="hero">
+                <h2>Prodotti Agricoli Freschi</h2>
+                <p>Direttamente dal nostro campo alla tua tavola</p>
+            </div>
+            
+            <div class="categories">
+                <h3>Categorie</h3>
+                <div id="categories-grid" class="grid"></div>
+            </div>
+            
+            <div class="featured-products">
+                <h3>Prodotti in Evidenza</h3>
+                <div id="featured-grid" class="grid"></div>
+            </div>
+        </section>
+
+        <!-- Products Section -->
+        <section id="products" class="section">
+            <div class="filters">
+                <select id="category-filter">
+                    <option value="">Tutte le categorie</option>
+                </select>
+                <input type="text" id="search-input" placeholder="Cerca prodotti...">
+            </div>
+            <div id="products-grid" class="grid"></div>
+        </section>
+
+        <!-- Cart Section -->
+        <section id="cart" class="section">
+            <h2>Carrello</h2>
+            <div id="cart-items"></div>
+            <div class="cart-total">
+                <h3>Totale: €<span id="cart-total">0.00</span></h3>
+                <button id="checkout-btn" class="btn-primary">Procedi all'Ordine</button>
+            </div>
+        </section>
+
+        <!-- Login Section -->
+        <section id="login" class="section">
+            <div class="auth-container">
+                <div class="auth-form" id="login-form">
+                    <h2>Accedi</h2>
+                    <input type="email" id="login-email" placeholder="Email" required>
+                    <input type="password" id="login-password" placeholder="Password" required>
+                    <button id="login-submit" class="btn-primary">Accedi</button>
+                    <p>Non hai un account? <a href="#" id="show-register">Registrati</a></p>
+                </div>
+                
+                <div class="auth-form" id="register-form" style="display:none">
+                    <h2>Registrati</h2>
+                    <input type="text" id="register-name" placeholder="Nome completo" required>
+                    <input type="email" id="register-email" placeholder="Email" required>
+                    <input type="tel" id="register-phone" placeholder="Telefono">
+                    <textarea id="register-address" placeholder="Indirizzo"></textarea>
+                    <input type="password" id="register-password" placeholder="Password" required>
+                    <button id="register-submit" class="btn-primary">Registrati</button>
+                    <p>Hai già un account? <a href="#" id="show-login">Accedi</a></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Profile Section -->
+        <section id="profile" class="section">
+            <h2>Il Mio Profilo</h2>
+            <div class="profile-info">
+                <h3>Informazioni Personali</h3>
+                <div id="profile-details"></div>
+            </div>
+            
+            <div class="orders-history">
+                <h3>I Miei Ordini</h3>
+                <div id="orders-list"></div>
+            </div>
+        </section>
+
+        <!-- Checkout Modal -->
+        <div id="checkout-modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Completa l'Ordine</h2>
+                <form id="checkout-form">
+                    <div class="form-group">
+                        <label>Data di Ritiro:</label>
+                        <input type="date" id="pickup-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Note (opzionale):</label>
+                        <textarea id="order-notes" placeholder="Eventuali richieste speciali..."></textarea>
+                    </div>
+                    <div class="order-summary">
+                        <h3>Riepilogo Ordine</h3>
+                        <div id="checkout-items"></div>
+                        <div class="total">Totale: €<span id="checkout-total">0.00</span></div>
+                    </div>
+                    <button type="submit" class="btn-primary">Conferma Ordine</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth-compat.js"></script>
+    
+    <!-- App Scripts -->
+    <script src="firebase-config.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

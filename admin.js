@@ -1,0 +1,231 @@
+let categories = [];
+let products = [];
+let orders = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadData();
+});
+
+function loadData() {
+    // Carica categorie
+    db.ref('categories').on('value', (snapshot) => {
+        categories = [];
+        snapshot.forEach((child) => {
+            categories.push({
+                id: child.key,
+                ...child.val()
+            });
+        });
+        renderCategoriesTable();
+        updateProductCategorySelect();
+    });
+    
+    // Carica prodotti
+    db.ref('products').on('value', (snapshot) => {
+        products = [];
+        snapshot.forEach((child) => {
+            products.push({
+                id: child.key,
+                ...child.val()
+            });
+        });
+        renderProductsTable();
+        updateStats();
+    });
+    
+    // Carica ordini
+    db.ref('orders').on('value', (snapshot) => {
+        orders = [];
+        snapshot.forEach((child) => {
+            orders.push({
+                id: child.key,
+                ...child.val()
+            });
+        });
+        renderOrdersTable();
+        updateStats();
+    });
+}
+
+function showAdminSection(sectionId) {
+    document.querySelectorAll('.admin-section').forEach(section => {
+        section.classList.remove('active');
+    });
+    document.querySelectorAll('.admin-tabs button').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    document.getElementById(sectionId).classList.add('active');
+    event.target.classList.add('active');
+}
+
+// Gestione Categorie
+function addCategory() {
+    const name = document.getElementById('category-name').value;
+    const description = document.getElementById('category-desc').value;
+    
+    if (!name) {
+        alert('Inserisci il nome della categoria');
+        return;
+    }
+    
+    db.ref('categories').push({
+        name,
+        description,
+        createdAt: firebase.database.ServerValue.TIMESTAMP
+    }).then(() => {
+        document.getElementById('category-name').value = '';
+        document.getElementById('category-desc').value = '';
+        alert('Categoria aggiunta!');
+    }).catch(error => {
+        alert('Errore: ' + error.message);
+    });
+}
+
+function renderCategoriesTable() {
+    const tbody = document.getElementById('categories-table');
+    tbody.innerHTML = categories.map(category => `
+        <tr>
+            <td>${category.name}</td>
+            <td>${category.description || ''}</td>
+            <td class="action-buttons">
+                <button class="btn-small btn-edit" onclick="editCategory('${category.id}')">Modifica</button>
+                <button class="btn-small btn-delete" onclick="deleteCategory('${category.id}')">Elimina</button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function deleteCategory(id) {
+    if (confirm('Sei sicuro di voler eliminare questa categoria?')) {
+        db.ref(`categories/${id}`).remove()
+            .then(() => alert('Categoria eliminata!'))
+            .catch(error => alert('Errore: ' + error.message));
+    }
+}
+
+// Gestione Prodotti
+function addProduct() {
+    const name = document.getElementById('product-name').value;
+    const description = document.getElementById('product-desc').value;
+    const price = parseFloat(document.getElementById('product-price').value);
+    const stock = parseInt(document.getElementById('product-stock').value);
+    const categoryId = document.getElementById('product-category').value;
+    const unit = document.getElementById('product-unit').value || 'kg';
+    
+    if (!name || !price || !stock || !categoryId) {
+        alert('Compila tutti i campi obbligatori');
+        return;
+    }
+    
+    db.ref('products').push({
+        name,
+        description,
+        price,
+        stock,
+        categoryId,
+        unit,
+        createdAt: firebase.database.ServerValue.TIMESTAMP
+    }).then(() => {
+        document.getElementById('product-name').value = '';
+        document.getElementById('product-desc').value = '';
+        document.getElementById('product-price').value = '';
+        document.getElementById('product-stock').value = '';
+        document.getElementById('product-unit').value = '';
+        alert('Prodotto aggiunto!');
+    }).catch(error => {
+        alert('Errore: ' + error.message);
+    });
+}
+
+function renderProductsTable() {
+    const tbody = document.getElementById('products-table');
+    tbody.innerHTML = products.map(product => {
+        const category = categories.find(c => c.id === product.categoryId);
+        return `
+            <tr>
+                <td>${product.name}</td>
+                <td>${category ? category.name : 'N/A'}</td>
+                <td>€${product.price.toFixed(2)}</td>
+                <td>${product.stock}</td>
+                <td>${product.unit}</td>
+                <td class="action-buttons">
+                    <button class="btn-small btn-edit" onclick="editProduct('${product.id}')">Modifica</button>
+                    <button class="btn-small btn-delete" onclick="deleteProduct('${product.id}')">Elimina</button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function updateProductCategorySelect() {
+    const select = document.getElementById('product-category');
+    select.innerHTML = '<option value="">Seleziona categoria</option>' +
+        categories.map(cat => `<option value="${cat.id}">${cat.name}</option>`).join('');
+}
+
+function deleteProduct(id) {
+    if (confirm('Sei sicuro di voler eliminare questo prodotto?')) {
+        db.ref(`products/${id}`).remove()
+            .then(() => alert('Prodotto eliminato!'))
+            .catch(error => alert('Errore: ' + error.message));
+    }
+}
+
+// Gestione Ordini
+function renderOrdersTable() {
+    const tbody = document.getElementById('orders-table');
+    tbody.innerHTML = orders.map(order => `
+        <tr>
+            <td>#${order.id.substring(0, 8)}</td>
+            <td>User ${order.userId.substring(0, 8)}</td>
+            <td>${new Date(order.createdAt).toLocaleDateString()}</td>
+            <td>${order.pickupDate}</td>
+            <td>€${order.totalAmount.toFixed(2)}</td>
+            <td>
+                <select onchange="updateOrderStatus('${order.id}', this.value)">
+                    <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pendente</option>
+                    <option value="confirmed" ${order.status === 'confirmed' ? 'selected' : ''}>Confermato</option>
+                    <option value="ready" ${order.status === 'ready' ? 'selected' : ''}>Pronto</option>
+                    <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>Completato</option>
+                    <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Annullato</option>
+                </select>
+            </td>
+            <td class="action-buttons">
+                <button class="btn-small btn-delete" onclick="deleteOrder('${order.id}')">Elimina</button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function updateOrderStatus(orderId, newStatus) {
+    db.ref(`orders/${orderId}`).update({
+        status: newStatus,
+        updatedAt: firebase.database.ServerValue.TIMESTAMP
+    }).then(() => {
+        alert('Stato ordine aggiornato!');
+    }).catch(error => {
+        alert('Errore: ' + error.message);
+    });
+}
+
+function deleteOrder(id) {
+    if (confirm('Sei sicuro di voler eliminare questo ordine?')) {
+        db.ref(`orders/${id}`).remove()
+            .then(() => alert('Ordine eliminato!'))
+            .catch(error => alert('Errore: ' + error.message));
+    }
+}
+
+// Statistiche
+function updateStats() {
+    const totalOrders = orders.length;
+    const totalRevenue = orders.reduce((sum, order) => sum + order.totalAmount, 0);
+    const activeProducts = products.filter(p => p.stock > 0).length;
+    const pendingOrders = orders.filter(o => o.status === 'pending').length;
+    
+    document.getElementById('total-orders').textContent = totalOrders;
+    document.getElementById('total-revenue').textContent = `€${totalRevenue.toFixed(2)}`;
+    document.getElementById('active-products').textContent = activeProducts;
+    document.getElementById('pending-orders').textContent = pendingOrders;
+}
