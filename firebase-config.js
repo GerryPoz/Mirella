@@ -1,4 +1,3 @@
-// Configurazione Firebase - SOSTITUISCI CON I TUOI DATI
 const firebaseConfig = {
   apiKey: "AIzaSyA7Wkf7Xu6873kb82nqWdS_IVFvxC1TNQg",
   authDomain: "mirella-dd7ff.firebaseapp.com",
@@ -15,6 +14,8 @@ firebase.initializeApp(firebaseConfig);
 
 // Riferimenti ai servizi Firebase
 const database = firebase.database();
+const auth = firebase.auth();
 
 // Esporta per uso globale
 window.db = database;
+window.auth = auth;
