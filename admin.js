@@ -47,7 +47,7 @@ function loadData() {
     });
 }
 
-function showAdminSection(sectionId, element) {
+function showAdminSection(sectionId) {
     document.querySelectorAll('.admin-section').forEach(section => {
         section.classList.remove('active');
     });
@@ -56,9 +56,7 @@ function showAdminSection(sectionId, element) {
     });
     
     document.getElementById(sectionId).classList.add('active');
-    if (element) {
-        element.classList.add('active');
-    }
+    event.target.classList.add('active');
 }
 
 // Gestione Categorie
