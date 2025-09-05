@@ -308,27 +308,104 @@ function deleteProduct(id) {
 // Gestione Ordini
 function renderOrdersTable() {
     const tbody = document.getElementById('orders-table');
-    tbody.innerHTML = orders.map(order => `
-        <tr>
-            <td>#${order.id.substring(0, 8)}</td>
-            <td>User ${order.userId.substring(0, 8)}</td>
-            <td>${new Date(order.createdAt).toLocaleDateString()}</td>
-            <td>${order.pickupDate}</td>
-            <td>€${order.totalAmount.toFixed(2)}</td>
-            <td>
-                <select onchange="updateOrderStatus('${order.id}', this.value)">
-                    <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pendente</option>
-                    <option value="confirmed" ${order.status === 'confirmed' ? 'selected' : ''}>Confermato</option>
-                    <option value="ready" ${order.status === 'ready' ? 'selected' : ''}>Pronto</option>
-                    <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>Completato</option>
-                    <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Annullato</option>
-                </select>
-            </td>
-            <td class="action-buttons">
-                <button class="btn-small btn-delete" onclick="deleteOrder('${order.id}')">Elimina</button>
-            </td>
-        </tr>
-    `).join('');
+    
+    // Se non ci sono ordini
+    if (orders.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Nessun ordine trovato</td></tr>';
+        return;
+    }
+    
+    // Per ogni ordine, carica anche i dati del cliente
+    const orderPromises = orders.map(order => {
+        return db.ref(`users/${order.userId}`).once('value')
+            .then(userSnapshot => {
+                const userData = userSnapshot.val() || {};
+                return {
+                    ...order,
+                    customerName: userData.name || 'Nome non disponibile',
+                    customerEmail: userData.email || 'Email non disponibile',
+                    customerPhone: userData.phone || 'N/A',
+                    customerAddress: userData.address || 'N/A'
+                };
+            })
+            .catch(() => ({
+                ...order,
+                customerName: 'Errore caricamento',
+                customerEmail: 'N/A',
+                customerPhone: 'N/A',
+                customerAddress: 'N/A'
+            }));
+    });
+    
+    Promise.all(orderPromises).then(ordersWithCustomers => {
+        tbody.innerHTML = ordersWithCustomers.map(order => {
+            const itemsList = order.items ? order.items.map(item => 
+                `<div class="order-item-detail">
+                    <strong>${item.name}</strong><br>
+                    Quantità: ${item.quantity} ${item.unit || 'pz'} - €${(item.price * item.quantity).toFixed(2)}
+                </div>`
+            ).join('') : 'Nessun prodotto';
+            
+            return `
+                <tr>
+                    <td>
+                        <strong>#${order.id.substring(0, 8)}</strong>
+                        <button class="btn-small btn-info" onclick="toggleOrderDetails('${order.id}')" style="margin-left: 10px;">Dettagli</button>
+                    </td>
+                    <td>
+                        <div class="customer-info">
+                            <strong>${order.customerName}</strong><br>
+                            <small>${order.customerEmail}</small><br>
+                            <small>Tel: ${order.customerPhone}</small>
+                        </div>
+                    </td>
+                    <td>${new Date(order.createdAt).toLocaleDateString()}</td>
+                    <td>${order.pickupDate}</td>
+                    <td>€${order.totalAmount.toFixed(2)}</td>
+                    <td>
+                        <select onchange="updateOrderStatus('${order.id}', this.value)">
+                            <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pendente</option>
+                            <option value="confirmed" ${order.status === 'confirmed' ? 'selected' : ''}>Confermato</option>
+                            <option value="ready" ${order.status === 'ready' ? 'selected' : ''}>Pronto</option>
+                            <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>Completato</option>
+                            <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Annullato</option>
+                        </select>
+                    </td>
+                    <td class="action-buttons">
+                        <button class="btn-small btn-delete" onclick="deleteOrder('${order.id}')">Elimina</button>
+                    </td>
+                </tr>
+                <tr id="details-${order.id}" class="order-details-row" style="display: none;">
+                    <td colspan="7">
+                        <div class="order-details-content">
+                            <div class="customer-details">
+                                <h4>Dettagli Cliente:</h4>
+                                <p><strong>Nome:</strong> ${order.customerName}</p>
+                                <p><strong>Email:</strong> ${order.customerEmail}</p>
+                                <p><strong>Telefono:</strong> ${order.customerPhone}</p>
+                                <p><strong>Indirizzo:</strong> ${order.customerAddress}</p>
+                                ${order.notes ? `<p><strong>Note ordine:</strong> ${order.notes}</p>` : ''}
+                            </div>
+                            <div class="order-products">
+                                <h4>Prodotti Ordinati:</h4>
+                                ${itemsList}
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    });
+}
+
+// Funzione per mostrare/nascondere i dettagli dell'ordine
+function toggleOrderDetails(orderId) {
+    const detailsRow = document.getElementById(`details-${orderId}`);
+    if (detailsRow.style.display === 'none') {
+        detailsRow.style.display = 'table-row';
+    } else {
+        detailsRow.style.display = 'none';
+    }
 }
 
 function updateOrderStatus(orderId, newStatus) {
