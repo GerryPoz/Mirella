@@ -96,32 +96,6 @@ function renderCategoriesTable() {
     `).join('');
 }
 
-function editCategory(id) {
-    const category = categories.find(c => c.id === id);
-    if (!category) return;
-    
-    const newName = prompt('Nuovo nome categoria:', category.name);
-    if (newName === null) return; // Utente ha annullato
-    
-    const newDescription = prompt('Nuova descrizione:', category.description || '');
-    if (newDescription === null) return; // Utente ha annullato
-    
-    if (!newName.trim()) {
-        alert('Il nome della categoria non può essere vuoto');
-        return;
-    }
-    
-    db.ref(`categories/${id}`).update({
-        name: newName.trim(),
-        description: newDescription.trim(),
-        updatedAt: firebase.database.ServerValue.TIMESTAMP
-    }).then(() => {
-        alert('Categoria aggiornata!');
-    }).catch(error => {
-        alert('Errore: ' + error.message);
-    });
-}
-
 function deleteCategory(id) {
     if (confirm('Sei sicuro di voler eliminare questa categoria?')) {
         db.ref(`categories/${id}`).remove()
@@ -182,60 +156,6 @@ function renderProductsTable() {
             </tr>
         `;
     }).join('');
-}
-
-function editProduct(id) {
-    const product = products.find(p => p.id === id);
-    if (!product) return;
-    
-    // Crea un form di modifica più user-friendly
-    const newName = prompt('Nuovo nome prodotto:', product.name);
-    if (newName === null) return;
-    
-    const newDescription = prompt('Nuova descrizione:', product.description || '');
-    if (newDescription === null) return;
-    
-    const newPrice = prompt('Nuovo prezzo (€):', product.price);
-    if (newPrice === null) return;
-    
-    const newStock = prompt('Nuovo stock:', product.stock);
-    if (newStock === null) return;
-    
-    const newUnit = prompt('Nuova unità di misura:', product.unit || 'kg');
-    if (newUnit === null) return;
-    
-    // Validazione
-    if (!newName.trim()) {
-        alert('Il nome del prodotto non può essere vuoto');
-        return;
-    }
-    
-    const price = parseFloat(newPrice);
-    if (isNaN(price) || price <= 0) {
-        alert('Inserisci un prezzo valido');
-        return;
-    }
-    
-    const stock = parseInt(newStock);
-    if (isNaN(stock) || stock < 0) {
-        alert('Inserisci uno stock valido');
-        return;
-    }
-    
-    // Aggiorna il prodotto
-    db.ref(`products/${id}`).update({
-        name: newName.trim(),
-        description: newDescription.trim(),
-        price: price,
-        stock: stock,
-        unit: newUnit.trim(),
-        categoryId: product.categoryId, // Mantieni la categoria originale
-        updatedAt: firebase.database.ServerValue.TIMESTAMP
-    }).then(() => {
-        alert('Prodotto aggiornato!');
-    }).catch(error => {
-        alert('Errore: ' + error.message);
-    });
 }
 
 function updateProductCategorySelect() {
