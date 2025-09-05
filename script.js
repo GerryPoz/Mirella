@@ -352,15 +352,43 @@ function loadUserProfile() {
             if (orders.length === 0) {
                 ordersList.innerHTML = '<p>Nessun ordine trovato</p>';
             } else {
-                ordersList.innerHTML = orders.map(order => `
-                    <div class="order-item">
-                        <h4>Ordine #${order.id.substring(0, 8)}</h4>
-                        <p>Data: ${new Date(order.createdAt).toLocaleDateString()}</p>
-                        <p>Ritiro: ${order.pickupDate}</p>
-                        <p>Stato: <span class="status-${order.status}">${order.status}</span></p>
-                        <p>Totale: €${order.totalAmount.toFixed(2)}</p>
-                    </div>
-                `).join('');
+                ordersList.innerHTML = orders.map(order => {
+                    const statusLabels = {
+                        'pending': 'In attesa',
+                        'confirmed': 'Confermato',
+                        'ready': 'Pronto per il ritiro',
+                        'completed': 'Completato',
+                        'cancelled': 'Annullato'
+                    };
+                    
+                    const itemsList = order.items ? order.items.map(item => `
+                        <div class="order-product">
+                            <span class="product-name">${item.name}</span>
+                            <span class="product-details">Quantità: ${item.quantity} ${item.unit || 'pz'} - €${(item.price * item.quantity).toFixed(2)}</span>
+                        </div>
+                    `).join('') : '<p>Nessun prodotto trovato</p>';
+                    
+                    return `
+                        <div class="order-item">
+                            <div class="order-header">
+                                <h4>Ordine #${order.id.substring(0, 8)}</h4>
+                                <span class="order-status status-${order.status}">${statusLabels[order.status] || order.status}</span>
+                            </div>
+                            <div class="order-info">
+                                <p><strong>Data ordine:</strong> ${new Date(order.createdAt).toLocaleDateString()}</p>
+                                <p><strong>Data ritiro:</strong> ${order.pickupDate}</p>
+                                ${order.notes ? `<p><strong>Note:</strong> ${order.notes}</p>` : ''}
+                            </div>
+                            <div class="order-products">
+                                <h5>Prodotti ordinati:</h5>
+                                ${itemsList}
+                            </div>
+                            <div class="order-total">
+                                <strong>Totale: €${order.totalAmount.toFixed(2)}</strong>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
             }
         });
 }
