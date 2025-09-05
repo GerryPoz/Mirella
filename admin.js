@@ -1,15 +1,66 @@
-// Funzione per convertire file in base64
-function fileToBase64(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = error => reject(error);
+let categories = [];
+let products = [];
+let orders = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadData();
+});
+
+function loadData() {
+    // Carica categorie
+    db.ref('categories').on('value', (snapshot) => {
+        categories = [];
+        snapshot.forEach((child) => {
+            categories.push({
+                id: child.key,
+                ...child.val()
+            });
+        });
+        renderCategoriesTable();
+        updateProductCategorySelect();
+    });
+    
+    // Carica prodotti
+    db.ref('products').on('value', (snapshot) => {
+        products = [];
+        snapshot.forEach((child) => {
+            products.push({
+                id: child.key,
+                ...child.val()
+            });
+        });
+        renderProductsTable();
+        updateStats();
+    });
+    
+    // Carica ordini
+    db.ref('orders').on('value', (snapshot) => {
+        orders = [];
+        snapshot.forEach((child) => {
+            orders.push({
+                id: child.key,
+                ...child.val()
+            });
+        });
+        renderOrdersTable();
+        updateStats();
     });
 }
 
-// Gestione Categorie - versione aggiornata
-async function addCategory() {
+function showAdminSection(sectionId) {
+    document.querySelectorAll('.admin-section').forEach(section => {
+        section.classList.remove('active');
+    });
+    document.querySelectorAll('.admin-tabs button').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    document.getElementById(sectionId).classList.add('active');
+    event.target.classList.add('active');
+}
+
+// Gestione Categorie
+function addCategory() {
     const name = document.getElementById('category-name').value;
     const description = document.getElementById('category-desc').value;
     
@@ -18,61 +69,17 @@ async function addCategory() {
         return;
     }
     
-    // Chiedi se vuole aggiungere un'immagine
-    const addImage = confirm('Vuoi aggiungere un\'immagine per questa categoria?');
-    let imageData = null;
-    
-    if (addImage) {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'image/*';
-        
-        input.onchange = async function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                try {
-                    imageData = await fileToBase64(file);
-                } catch (error) {
-                    alert('Errore nel caricamento dell\'immagine: ' + error.message);
-                    return;
-                }
-            }
-            
-            // Salva la categoria con l'immagine
-            const categoryData = {
-                name,
-                description,
-                createdAt: firebase.database.ServerValue.TIMESTAMP
-            };
-            
-            if (imageData) {
-                categoryData.image = imageData;
-            }
-            
-            db.ref('categories').push(categoryData).then(() => {
-                document.getElementById('category-name').value = '';
-                document.getElementById('category-desc').value = '';
-                alert('Categoria aggiunta!');
-            }).catch(error => {
-                alert('Errore: ' + error.message);
-            });
-        };
-        
-        input.click();
-    } else {
-        // Salva la categoria senza immagine
-        db.ref('categories').push({
-            name,
-            description,
-            createdAt: firebase.database.ServerValue.TIMESTAMP
-        }).then(() => {
-            document.getElementById('category-name').value = '';
-            document.getElementById('category-desc').value = '';
-            alert('Categoria aggiunta!');
-        }).catch(error => {
-            alert('Errore: ' + error.message);
-        });
-    }
+    db.ref('categories').push({
+        name,
+        description,
+        createdAt: firebase.database.ServerValue.TIMESTAMP
+    }).then(() => {
+        document.getElementById('category-name').value = '';
+        document.getElementById('category-desc').value = '';
+        alert('Categoria aggiunta!');
+    }).catch(error => {
+        alert('Errore: ' + error.message);
+    });
 }
 
 function renderCategoriesTable() {
@@ -89,8 +96,42 @@ function renderCategoriesTable() {
     `).join('');
 }
 
-// Gestione Prodotti - versione aggiornata
-async function addProduct() {
+function editCategory(id) {
+    const category = categories.find(c => c.id === id);
+    if (!category) return;
+    
+    const newName = prompt('Nuovo nome categoria:', category.name);
+    if (newName === null) return; // Utente ha annullato
+    
+    const newDescription = prompt('Nuova descrizione:', category.description || '');
+    if (newDescription === null) return; // Utente ha annullato
+    
+    if (!newName.trim()) {
+        alert('Il nome della categoria non può essere vuoto');
+        return;
+    }
+    
+    db.ref(`categories/${id}`).update({
+        name: newName.trim(),
+        description: newDescription.trim(),
+        updatedAt: firebase.database.ServerValue.TIMESTAMP
+    }).then(() => {
+        alert('Categoria aggiornata!');
+    }).catch(error => {
+        alert('Errore: ' + error.message);
+    });
+}
+
+function deleteCategory(id) {
+    if (confirm('Sei sicuro di voler eliminare questa categoria?')) {
+        db.ref(`categories/${id}`).remove()
+            .then(() => alert('Categoria eliminata!'))
+            .catch(error => alert('Errore: ' + error.message));
+    }
+}
+
+// Gestione Prodotti
+function addProduct() {
     const name = document.getElementById('product-name').value;
     const description = document.getElementById('product-desc').value;
     const price = parseFloat(document.getElementById('product-price').value);
@@ -103,75 +144,24 @@ async function addProduct() {
         return;
     }
     
-    // Chiedi se vuole aggiungere un'immagine
-    const addImage = confirm('Vuoi aggiungere un\'immagine per questo prodotto?');
-    let imageData = null;
-    
-    if (addImage) {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'image/*';
-        
-        input.onchange = async function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                try {
-                    imageData = await fileToBase64(file);
-                } catch (error) {
-                    alert('Errore nel caricamento dell\'immagine: ' + error.message);
-                    return;
-                }
-            }
-            
-            // Salva il prodotto con l'immagine
-            const productData = {
-                name,
-                description,
-                price,
-                stock,
-                categoryId,
-                unit,
-                createdAt: firebase.database.ServerValue.TIMESTAMP
-            };
-            
-            if (imageData) {
-                productData.image = imageData;
-            }
-            
-            db.ref('products').push(productData).then(() => {
-                document.getElementById('product-name').value = '';
-                document.getElementById('product-desc').value = '';
-                document.getElementById('product-price').value = '';
-                document.getElementById('product-stock').value = '';
-                document.getElementById('product-unit').value = '';
-                alert('Prodotto aggiunto!');
-            }).catch(error => {
-                alert('Errore: ' + error.message);
-            });
-        };
-        
-        input.click();
-    } else {
-        // Salva il prodotto senza immagine
-        db.ref('products').push({
-            name,
-            description,
-            price,
-            stock,
-            categoryId,
-            unit,
-            createdAt: firebase.database.ServerValue.TIMESTAMP
-        }).then(() => {
-            document.getElementById('product-name').value = '';
-            document.getElementById('product-desc').value = '';
-            document.getElementById('product-price').value = '';
-            document.getElementById('product-stock').value = '';
-            document.getElementById('product-unit').value = '';
-            alert('Prodotto aggiunto!');
-        }).catch(error => {
-            alert('Errore: ' + error.message);
-        });
-    }
+    db.ref('products').push({
+        name,
+        description,
+        price,
+        stock,
+        categoryId,
+        unit,
+        createdAt: firebase.database.ServerValue.TIMESTAMP
+    }).then(() => {
+        document.getElementById('product-name').value = '';
+        document.getElementById('product-desc').value = '';
+        document.getElementById('product-price').value = '';
+        document.getElementById('product-stock').value = '';
+        document.getElementById('product-unit').value = '';
+        alert('Prodotto aggiunto!');
+    }).catch(error => {
+        alert('Errore: ' + error.message);
+    });
 }
 
 function renderProductsTable() {
@@ -192,4 +182,130 @@ function renderProductsTable() {
             </tr>
         `;
     }).join('');
+}
+
+function editProduct(id) {
+    const product = products.find(p => p.id === id);
+    if (!product) return;
+    
+    // Crea un form di modifica più user-friendly
+    const newName = prompt('Nuovo nome prodotto:', product.name);
+    if (newName === null) return;
+    
+    const newDescription = prompt('Nuova descrizione:', product.description || '');
+    if (newDescription === null) return;
+    
+    const newPrice = prompt('Nuovo prezzo (€):', product.price);
+    if (newPrice === null) return;
+    
+    const newStock = prompt('Nuovo stock:', product.stock);
+    if (newStock === null) return;
+    
+    const newUnit = prompt('Nuova unità di misura:', product.unit || 'kg');
+    if (newUnit === null) return;
+    
+    // Validazione
+    if (!newName.trim()) {
+        alert('Il nome del prodotto non può essere vuoto');
+        return;
+    }
+    
+    const price = parseFloat(newPrice);
+    if (isNaN(price) || price <= 0) {
+        alert('Inserisci un prezzo valido');
+        return;
+    }
+    
+    const stock = parseInt(newStock);
+    if (isNaN(stock) || stock < 0) {
+        alert('Inserisci uno stock valido');
+        return;
+    }
+    
+    // Aggiorna il prodotto
+    db.ref(`products/${id}`).update({
+        name: newName.trim(),
+        description: newDescription.trim(),
+        price: price,
+        stock: stock,
+        unit: newUnit.trim(),
+        categoryId: product.categoryId, // Mantieni la categoria originale
+        updatedAt: firebase.database.ServerValue.TIMESTAMP
+    }).then(() => {
+        alert('Prodotto aggiornato!');
+    }).catch(error => {
+        alert('Errore: ' + error.message);
+    });
+}
+
+function updateProductCategorySelect() {
+    const select = document.getElementById('product-category');
+    select.innerHTML = '<option value="">Seleziona categoria</option>' +
+        categories.map(cat => `<option value="${cat.id}">${cat.name}</option>`).join('');
+}
+
+function deleteProduct(id) {
+    if (confirm('Sei sicuro di voler eliminare questo prodotto?')) {
+        db.ref(`products/${id}`).remove()
+            .then(() => alert('Prodotto eliminato!'))
+            .catch(error => alert('Errore: ' + error.message));
+    }
+}
+
+// Gestione Ordini
+function renderOrdersTable() {
+    const tbody = document.getElementById('orders-table');
+    tbody.innerHTML = orders.map(order => `
+        <tr>
+            <td>#${order.id.substring(0, 8)}</td>
+            <td>User ${order.userId.substring(0, 8)}</td>
+            <td>${new Date(order.createdAt).toLocaleDateString()}</td>
+            <td>${order.pickupDate}</td>
+            <td>€${order.totalAmount.toFixed(2)}</td>
+            <td>
+                <select onchange="updateOrderStatus('${order.id}', this.value)">
+                    <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pendente</option>
+                    <option value="confirmed" ${order.status === 'confirmed' ? 'selected' : ''}>Confermato</option>
+                    <option value="ready" ${order.status === 'ready' ? 'selected' : ''}>Pronto</option>
+                    <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>Completato</option>
+                    <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Annullato</option>
+                </select>
+            </td>
+            <td class="action-buttons">
+                <button class="btn-small btn-delete" onclick="deleteOrder('${order.id}')">Elimina</button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function updateOrderStatus(orderId, newStatus) {
+    db.ref(`orders/${orderId}`).update({
+        status: newStatus,
+        updatedAt: firebase.database.ServerValue.TIMESTAMP
+    }).then(() => {
+        alert('Stato ordine aggiornato!');
+    }).catch(error => {
+        alert('Errore: ' + error.message);
+    });
+}
+
+function deleteOrder(id) {
+    if (confirm('Sei sicuro di voler eliminare questo ordine?')) {
+        db.ref(`orders/${id}`).remove()
+            .then(() => alert('Ordine eliminato!'))
+            .catch(error => alert('Errore: ' + error.message));
+    }
+}
+
+// Statistiche
+function updateStats() {
+    const totalOrders = orders.length;
+    const totalRevenue = orders.reduce((sum, order) => sum + order.totalAmount, 0);
+    const activeProducts = products.filter(p => p.stock > 0).length;
+    const pendingOrders = orders.filter(o => o.status === 'pending').length;
+    
+    document.getElementById('total-orders').textContent = totalOrders;
+    document.getElementById('total-revenue').textContent = `€${totalRevenue.toFixed(2)}`;
+    document.getElementById('active-products').textContent = activeProducts;
+    document.getElementById('pending-orders').textContent = pendingOrders;
 }
