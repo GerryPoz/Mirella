@@ -188,6 +188,20 @@ body {
     font-size: 0.8rem;
 }
 
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+}
+
 .filters {
     display: flex;
     gap: 1rem;
