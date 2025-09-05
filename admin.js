@@ -6,6 +6,16 @@ document.addEventListener('DOMContentLoaded', function() {
     loadData();
 });
 
+// Funzione per convertire file in base64
+function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+    });
+}
+
 function loadData() {
     // Carica categorie
     db.ref('categories').on('value', (snapshot) => {
@@ -47,7 +57,7 @@ function loadData() {
     });
 }
 
-function showAdminSection(sectionId) {
+function showAdminSection(sectionId, element) {
     document.querySelectorAll('.admin-section').forEach(section => {
         section.classList.remove('active');
     });
@@ -56,36 +66,60 @@ function showAdminSection(sectionId) {
     });
     
     document.getElementById(sectionId).classList.add('active');
-    event.target.classList.add('active');
+    if (element) {
+        element.classList.add('active');
+    }
 }
 
 // Gestione Categorie
 function addCategory() {
     const name = document.getElementById('category-name').value;
     const description = document.getElementById('category-desc').value;
+    const imageFile = document.getElementById('category-image').files[0];
     
     if (!name) {
         alert('Inserisci il nome della categoria');
         return;
     }
     
-    db.ref('categories').push({
-        name,
-        description,
-        createdAt: firebase.database.ServerValue.TIMESTAMP
-    }).then(() => {
-        document.getElementById('category-name').value = '';
-        document.getElementById('category-desc').value = '';
-        alert('Categoria aggiunta!');
-    }).catch(error => {
-        alert('Errore: ' + error.message);
-    });
+    const saveCategory = (imageData = null) => {
+        db.ref('categories').push({
+            name,
+            description,
+            image: imageData,
+            createdAt: firebase.database.ServerValue.TIMESTAMP
+        }).then(() => {
+            document.getElementById('category-name').value = '';
+            document.getElementById('category-desc').value = '';
+            document.getElementById('category-image').value = '';
+            alert('Categoria aggiunta!');
+        }).catch(error => {
+            alert('Errore: ' + error.message);
+        });
+    };
+    
+    if (imageFile) {
+        fileToBase64(imageFile)
+            .then(base64 => saveCategory(base64))
+            .catch(error => {
+                console.error('Errore conversione immagine:', error);
+                saveCategory();
+            });
+    } else {
+        saveCategory();
+    }
 }
 
 function renderCategoriesTable() {
     const tbody = document.getElementById('categories-table');
     tbody.innerHTML = categories.map(category => `
         <tr>
+            <td>
+                ${category.image ? 
+                    `<img src="${category.image}" alt="${category.name}" class="image-preview">` : 
+                    `<div class="no-image">📷</div>`
+                }
+            </td>
             <td>${category.name}</td>
             <td>${category.description || ''}</td>
             <td class="action-buttons">
@@ -94,6 +128,32 @@ function renderCategoriesTable() {
             </td>
         </tr>
     `).join('');
+}
+
+function editCategory(id) {
+    const category = categories.find(c => c.id === id);
+    if (!category) return;
+    
+    const newName = prompt('Nuovo nome categoria:', category.name);
+    if (newName === null) return;
+    
+    const newDescription = prompt('Nuova descrizione:', category.description || '');
+    if (newDescription === null) return;
+    
+    if (!newName.trim()) {
+        alert('Il nome della categoria non può essere vuoto');
+        return;
+    }
+    
+    db.ref(`categories/${id}`).update({
+        name: newName.trim(),
+        description: newDescription.trim(),
+        updatedAt: firebase.database.ServerValue.TIMESTAMP
+    }).then(() => {
+        alert('Categoria aggiornata!');
+    }).catch(error => {
+        alert('Errore: ' + error.message);
+    });
 }
 
 function deleteCategory(id) {
@@ -112,30 +172,46 @@ function addProduct() {
     const stock = parseInt(document.getElementById('product-stock').value);
     const categoryId = document.getElementById('product-category').value;
     const unit = document.getElementById('product-unit').value || 'kg';
+    const imageFile = document.getElementById('product-image').files[0];
     
     if (!name || !price || !stock || !categoryId) {
         alert('Compila tutti i campi obbligatori');
         return;
     }
     
-    db.ref('products').push({
-        name,
-        description,
-        price,
-        stock,
-        categoryId,
-        unit,
-        createdAt: firebase.database.ServerValue.TIMESTAMP
-    }).then(() => {
-        document.getElementById('product-name').value = '';
-        document.getElementById('product-desc').value = '';
-        document.getElementById('product-price').value = '';
-        document.getElementById('product-stock').value = '';
-        document.getElementById('product-unit').value = '';
-        alert('Prodotto aggiunto!');
-    }).catch(error => {
-        alert('Errore: ' + error.message);
-    });
+    const saveProduct = (imageData = null) => {
+        db.ref('products').push({
+            name,
+            description,
+            price,
+            stock,
+            categoryId,
+            unit,
+            image: imageData,
+            createdAt: firebase.database.ServerValue.TIMESTAMP
+        }).then(() => {
+            document.getElementById('product-name').value = '';
+            document.getElementById('product-desc').value = '';
+            document.getElementById('product-price').value = '';
+            document.getElementById('product-stock').value = '';
+            document.getElementById('product-unit').value = '';
+            document.getElementById('product-image').value = '';
+            alert('Prodotto aggiunto!');
+        }).catch(error => {
+            alert('Errore: ' + error.message);
+        });
+    };
+    
+    if (imageFile) {
+        fileToBase64(imageFile)
+            .then(base64 => saveProduct(base64))
+            .catch(error => {
+                console.error('Errore conversione immagine:', error);
+                saveProduct();
+            });
+    } else {
+        saveProduct();
+    }
 }
 
 function renderProductsTable() {
@@ -144,6 +220,12 @@ function renderProductsTable() {
         const category = categories.find(c => c.id === product.categoryId);
         return `
             <tr>
+                <td>
+                    ${product.image ? 
+                        `<img src="${product.image}" alt="${product.name}" class="image-preview">` : 
+                        `<div class="no-image">📷</div>`
+                    }
+                </td>
                 <td>${product.name}</td>
                 <td>${category ? category.name : 'N/A'}</td>
                 <td>€${product.price.toFixed(2)}</td>
@@ -156,6 +238,57 @@ function renderProductsTable() {
             </tr>
         `;
     }).join('');
+}
+
+function editProduct(id) {
+    const product = products.find(p => p.id === id);
+    if (!product) return;
+    
+    const newName = prompt('Nuovo nome prodotto:', product.name);
+    if (newName === null) return;
+    
+    const newDescription = prompt('Nuova descrizione:', product.description || '');
+    if (newDescription === null) return;
+    
+    const newPrice = prompt('Nuovo prezzo (€):', product.price);
+    if (newPrice === null) return;
+    
+    const newStock = prompt('Nuovo stock:', product.stock);
+    if (newStock === null) return;
+    
+    const newUnit = prompt('Nuova unità di misura:', product.unit || 'kg');
+    if (newUnit === null) return;
+    
+    if (!newName.trim()) {
+        alert('Il nome del prodotto non può essere vuoto');
+        return;
+    }
+    
+    const price = parseFloat(newPrice);
+    if (isNaN(price) || price <= 0) {
+        alert('Inserisci un prezzo valido');
+        return;
+    }
+    
+    const stock = parseInt(newStock);
+    if (isNaN(stock) || stock < 0) {
+        alert('Inserisci uno stock valido');
+        return;
+    }
+    
+    db.ref(`products/${id}`).update({
+        name: newName.trim(),
+        description: newDescription.trim(),
+        price: price,
+        stock: stock,
+        unit: newUnit.trim(),
+        categoryId: product.categoryId,
+        updatedAt: firebase.database.ServerValue.TIMESTAMP
+    }).then(() => {
+        alert('Prodotto aggiornato!');
+    }).catch(error => {
+        alert('Errore: ' + error.message);
+    });
 }
 
 function updateProductCategorySelect() {
