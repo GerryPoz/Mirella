@@ -15,8 +15,6 @@ firebase.initializeApp(firebaseConfig);
 
 // Riferimenti ai servizi Firebase
 const database = firebase.database();
-const auth = firebase.auth();
 
 // Esporta per uso globale
 window.db = database;
-window.auth = auth;
