@@ -81,16 +81,42 @@
         }
         .btn-edit { background: #ffc107; color: #212529; }
         .btn-delete { background: #dc3545; color: white; }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .image-preview {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+        .no-image {
+            width: 50px;
+            height: 50px;
+            background: #f8f9fa;
+            border: 1px dashed #dee2e6;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
     </style>
 </head>
 <body>
     <div class="admin-nav">
         <h1>🔧 Pannello Amministrazione</h1>
         <div class="admin-tabs">
-            <button onclick="showAdminSection('categories')" class="active">Categorie</button>
-            <button onclick="showAdminSection('products')">Prodotti</button>
-            <button onclick="showAdminSection('orders')">Ordini</button>
-            <button onclick="showAdminSection('stats')">Statistiche</button>
+            <button onclick="showAdminSection('categories', this)" class="active">Categorie</button>
+            <button onclick="showAdminSection('products', this)">Prodotti</button>
+            <button onclick="showAdminSection('orders', this)">Ordini</button>
+            <button onclick="showAdminSection('stats', this)">Statistiche</button>
         </div>
     </div>
 
@@ -100,11 +126,14 @@
         <div class="form-inline">
             <input type="text" id="category-name" placeholder="Nome categoria">
             <input type="text" id="category-desc" placeholder="Descrizione">
+            <input type="file" id="category-image" accept="image/*" style="display: none;">
+            <button type="button" onclick="document.getElementById('category-image').click()" class="btn-secondary">📷 Immagine</button>
             <button onclick="addCategory()" class="btn-primary">Aggiungi</button>
         </div>
         <table class="data-table">
             <thead>
                 <tr>
+                    <th>Immagine</th>
                     <th>Nome</th>
                     <th>Descrizione</th>
                     <th>Azioni</th>
@@ -124,11 +153,14 @@
             <input type="number" id="product-stock" placeholder="Scorte">
             <select id="product-category"></select>
             <input type="text" id="product-unit" placeholder="Unità (kg, pz, ecc.)">
+            <input type="file" id="product-image" accept="image/*" style="display: none;">
+            <button type="button" onclick="document.getElementById('product-image').click()" class="btn-secondary">📷 Immagine</button>
             <button onclick="addProduct()" class="btn-primary">Aggiungi</button>
         </div>
         <table class="data-table">
             <thead>
                 <tr>
+                    <th>Immagine</th>
                     <th>Nome</th>
                     <th>Categoria</th>
                     <th>Prezzo</th>
@@ -183,22 +215,10 @@
         </div>
     </div>
 
-        <!-- Firebase SDK -->
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-database-compat.js"></script>
     <script src="firebase-config.js"></script>
-    <script>
-        // Aspetta che Firebase sia inizializzato
-        window.addEventListener('load', function() {
-            // Verifica che db sia disponibile
-            if (typeof window.db !== 'undefined') {
-                console.log('Firebase inizializzato correttamente');
-            } else {
-                console.error('Errore: Firebase non inizializzato');
-            }
-        });
-    </script>
     <script src="admin.js"></script>
 </body>
 </html>
