@@ -9,6 +9,10 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
     setupEventListeners();
     loadData();
+    
+    // Gestisce la navigazione iniziale basata sull'URL
+    const initialSection = getInitialSection();
+    showSection(initialSection, false); // false = non aggiungere alla cronologia
 });
 
 function initializeApp() {
@@ -22,7 +26,6 @@ function initializeApp() {
     });
     
     updateCartUI();
-    showSection('home');
 }
 
 function setupEventListeners() {
@@ -33,6 +36,15 @@ function setupEventListeners() {
             const section = e.target.getAttribute('href').substring(1);
             showSection(section);
         });
+    });
+    
+    // Gestione pulsanti avanti/indietro del browser
+    window.addEventListener('popstate', (e) => {
+        if (e.state && e.state.section) {
+            showSection(e.state.section, false); // false = non aggiungere alla cronologia
+        } else {
+            showSection('home', false);
+        }
     });
     
     // Auth forms
@@ -421,11 +433,52 @@ function closeModal() {
 }
 
 // Utility functions
-function showSection(sectionId) {
+function showSection(sectionId, addToHistory = true) {
+    // Rimuove la classe active da tutte le sezioni
     document.querySelectorAll('.section').forEach(section => {
         section.classList.remove('active');
     });
-    document.getElementById(sectionId).classList.add('active');
+    
+    // Aggiunge la classe active alla sezione corrente
+    const targetSection = document.getElementById(sectionId);
+    if (targetSection) {
+        targetSection.classList.add('active');
+        
+        // Aggiunge alla cronologia del browser se richiesto
+        if (addToHistory) {
+            const state = { section: sectionId };
+            const title = `${getPageTitle(sectionId)} - Azienda Agricola`;
+            const url = `#${sectionId}`;
+            
+            history.pushState(state, title, url);
+            document.title = title;
+        }
+    }
+}
+
+function getInitialSection() {
+    // Ottiene la sezione dall'URL hash
+    const hash = window.location.hash.substring(1);
+    const validSections = ['home', 'categories', 'products', 'cart', 'login', 'profile'];
+    
+    if (hash && validSections.includes(hash)) {
+        return hash;
+    }
+    
+    return 'home'; // sezione predefinita
+}
+
+function getPageTitle(sectionId) {
+    const titles = {
+        'home': 'Home',
+        'categories': 'Categorie',
+        'products': 'Prodotti',
+        'cart': 'Carrello',
+        'login': 'Accesso',
+        'profile': 'Profilo'
+    };
+    
+    return titles[sectionId] || 'Home';
 }
 
 function updateUI() {
