@@ -114,22 +114,32 @@ function setupEventListeners() {
 }
 
 function loadData() {
-    // Carica categorie
-    db.collection('categories').get().then(snapshot => {
+    // Carica categorie dal Realtime Database
+    db.ref('categories').on('value', (snapshot) => {
         categories = [];
-        snapshot.forEach(doc => {
-            categories.push({ id: doc.id, ...doc.data() });
-        });
+        if (snapshot.exists()) {
+            snapshot.forEach((childSnapshot) => {
+                categories.push({ 
+                    id: childSnapshot.key, 
+                    ...childSnapshot.val() 
+                });
+            });
+        }
         renderCategories();
         updateCategoryFilter();
     });
     
-    // Carica prodotti
-    db.collection('products').get().then(snapshot => {
+    // Carica prodotti dal Realtime Database
+    db.ref('products').on('value', (snapshot) => {
         products = [];
-        snapshot.forEach(doc => {
-            products.push({ id: doc.id, ...doc.data() });
-        });
+        if (snapshot.exists()) {
+            snapshot.forEach((childSnapshot) => {
+                products.push({ 
+                    id: childSnapshot.key, 
+                    ...childSnapshot.val() 
+                });
+            });
+        }
         renderProducts();
         renderFeaturedProducts();
     });
@@ -415,13 +425,13 @@ function handleRegister() {
     
     auth.createUserWithEmailAndPassword(email, password)
         .then(userCredential => {
-            // Salva informazioni aggiuntive dell'utente
-            return db.collection('users').doc(userCredential.user.uid).set({
+            // Salva informazioni aggiuntive dell'utente nel Realtime Database
+            return db.ref(`users/${userCredential.user.uid}`).set({
                 name: name,
                 email: email,
                 phone: phone,
                 address: address,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                createdAt: firebase.database.ServerValue.TIMESTAMP
             });
         })
         .then(() => {
@@ -445,9 +455,9 @@ function handleLogout() {
 function loadUserProfile() {
     if (!currentUser) return;
     
-    db.collection('users').doc(currentUser.uid).get().then(doc => {
-        if (doc.exists) {
-            const userData = doc.data();
+    db.ref(`users/${currentUser.uid}`).once('value').then(snapshot => {
+        if (snapshot.exists()) {
+            const userData = snapshot.val();
             
             // Popola i campi del profilo
             const fields = ['profile-name', 'profile-email', 'profile-phone', 'profile-address'];
@@ -462,27 +472,34 @@ function loadUserProfile() {
     });
     
     // Carica cronologia ordini
-    db.collection('orders')
-        .where('userId', '==', currentUser.uid)
-        .orderBy('createdAt', 'desc')
-        .get()
+    db.ref('orders').orderByChild('userId').equalTo(currentUser.uid).once('value')
         .then(snapshot => {
             const ordersContainer = document.getElementById('orders-history');
             if (!ordersContainer) return;
             
-            if (snapshot.empty) {
+            if (!snapshot.exists()) {
                 ordersContainer.innerHTML = '<p>Nessun ordine trovato</p>';
                 return;
             }
             
-            ordersContainer.innerHTML = snapshot.docs.map(doc => {
-                const order = doc.data();
-                const date = order.createdAt ? order.createdAt.toDate().toLocaleDateString() : 'Data non disponibile';
+            const orders = [];
+            snapshot.forEach(childSnapshot => {
+                orders.push({
+                    id: childSnapshot.key,
+                    ...childSnapshot.val()
+                });
+            });
+            
+            // Ordina per data (più recenti prima)
+            orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            
+            ordersContainer.innerHTML = orders.map(order => {
+                const date = order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'Data non disponibile';
                 
                 return `
                     <div class="order-item">
                         <div class="order-header">
-                            <h4>Ordine #${doc.id.substring(0, 8)}</h4>
+                            <h4>Ordine #${order.id.substring(0, 8)}</h4>
                             <span class="order-date">${date}</span>
                             <span class="order-status status-${order.status}">${order.status}</span>
                         </div>
@@ -561,10 +578,10 @@ function handleCheckout(e) {
         deliveryAddress: deliveryAddress,
         deliveryNotes: deliveryNotes,
         status: 'pending',
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        createdAt: firebase.database.ServerValue.TIMESTAMP
     };
     
-    db.collection('orders').add(orderData)
+    db.ref('orders').push(orderData)
         .then(() => {
             alert('Ordine inviato con successo!');
             cart = [];
