@@ -134,26 +134,89 @@ function editCategory(id) {
     const category = categories.find(c => c.id === id);
     if (!category) return;
     
-    const newName = prompt('Nuovo nome categoria:', category.name);
-    if (newName === null) return;
+    // Crea modal per modifica categoria
+    const modal = document.createElement('div');
+    modal.className = 'edit-modal';
+    modal.innerHTML = `
+        <div class="edit-modal-content">
+            <div class="edit-modal-header">
+                <h3>Modifica Categoria</h3>
+                <span class="edit-close" onclick="closeEditModal()">&times;</span>
+            </div>
+            <div class="edit-modal-body">
+                <div class="form-group">
+                    <label>Nome categoria:</label>
+                    <input type="text" id="edit-category-name" value="${category.name}">
+                </div>
+                <div class="form-group">
+                    <label>Descrizione:</label>
+                    <input type="text" id="edit-category-desc" value="${category.description || ''}">
+                </div>
+                <div class="form-group">
+                    <label>Immagine attuale:</label>
+                    <div class="current-image">
+                        ${category.image ? 
+                            `<img src="${category.image}" alt="${category.name}" class="edit-image-preview">` : 
+                            `<div class="no-image-placeholder">📷 Nessuna immagine</div>`
+                        }
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Nuova immagine (opzionale):</label>
+                    <input type="file" id="edit-category-image" accept="image/*">
+                </div>
+            </div>
+            <div class="edit-modal-footer">
+                <button onclick="closeEditModal()" class="btn-secondary">Annulla</button>
+                <button onclick="saveEditCategory('${id}')" class="btn-primary">Salva Modifiche</button>
+            </div>
+        </div>
+    `;
     
-    const newDescription = prompt('Nuova descrizione:', category.description || '');
-    if (newDescription === null) return;
+    document.body.appendChild(modal);
+    modal.style.display = 'block';
+}
+
+function saveEditCategory(id) {
+    const newName = document.getElementById('edit-category-name').value.trim();
+    const newDescription = document.getElementById('edit-category-desc').value.trim();
+    const imageFile = document.getElementById('edit-category-image').files[0];
     
-    if (!newName.trim()) {
+    if (!newName) {
         alert('Il nome della categoria non può essere vuoto');
         return;
     }
     
-    db.ref(`categories/${id}`).update({
-        name: newName.trim(),
-        description: newDescription.trim(),
-        updatedAt: firebase.database.ServerValue.TIMESTAMP
-    }).then(() => {
-        alert('Categoria aggiornata!');
-    }).catch(error => {
-        alert('Errore: ' + error.message);
-    });
+    const updateCategory = (imageData = null) => {
+        const updateData = {
+            name: newName,
+            description: newDescription,
+            updatedAt: firebase.database.ServerValue.TIMESTAMP
+        };
+        
+        // Aggiorna l'immagine solo se ne è stata selezionata una nuova
+        if (imageData !== null) {
+            updateData.image = imageData;
+        }
+        
+        db.ref(`categories/${id}`).update(updateData).then(() => {
+            alert('Categoria aggiornata!');
+            closeEditModal();
+        }).catch(error => {
+            alert('Errore: ' + error.message);
+        });
+    };
+    
+    if (imageFile) {
+        fileToBase64(imageFile)
+            .then(base64 => updateCategory(base64))
+            .catch(error => {
+                console.error('Errore conversione immagine:', error);
+                alert('Errore nel caricamento dell\'immagine');
+            });
+    } else {
+        updateCategory();
+    }
 }
 
 function deleteCategory(id) {
@@ -244,51 +307,117 @@ function editProduct(id) {
     const product = products.find(p => p.id === id);
     if (!product) return;
     
-    const newName = prompt('Nuovo nome prodotto:', product.name);
-    if (newName === null) return;
+    // Crea modal per modifica prodotto
+    const modal = document.createElement('div');
+    modal.className = 'edit-modal';
+    modal.innerHTML = `
+        <div class="edit-modal-content">
+            <div class="edit-modal-header">
+                <h3>Modifica Prodotto</h3>
+                <span class="edit-close" onclick="closeEditModal()">&times;</span>
+            </div>
+            <div class="edit-modal-body">
+                <div class="form-group">
+                    <label>Nome prodotto:</label>
+                    <input type="text" id="edit-product-name" value="${product.name}">
+                </div>
+                <div class="form-group">
+                    <label>Descrizione:</label>
+                    <input type="text" id="edit-product-desc" value="${product.description || ''}">
+                </div>
+                <div class="form-group">
+                    <label>Prezzo (€):</label>
+                    <input type="number" id="edit-product-price" value="${product.price}" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Stock:</label>
+                    <input type="number" id="edit-product-stock" value="${product.stock}">
+                </div>
+                <div class="form-group">
+                    <label>Unità di misura:</label>
+                    <input type="text" id="edit-product-unit" value="${product.unit || 'kg'}">
+                </div>
+                <div class="form-group">
+                    <label>Immagine attuale:</label>
+                    <div class="current-image">
+                        ${product.image ? 
+                            `<img src="${product.image}" alt="${product.name}" class="edit-image-preview">` : 
+                            `<div class="no-image-placeholder">📷 Nessuna immagine</div>`
+                        }
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Nuova immagine (opzionale):</label>
+                    <input type="file" id="edit-product-image" accept="image/*">
+                </div>
+            </div>
+            <div class="edit-modal-footer">
+                <button onclick="closeEditModal()" class="btn-secondary">Annulla</button>
+                <button onclick="saveEditProduct('${id}')" class="btn-primary">Salva Modifiche</button>
+            </div>
+        </div>
+    `;
     
-    const newDescription = prompt('Nuova descrizione:', product.description || '');
-    if (newDescription === null) return;
+    document.body.appendChild(modal);
+    modal.style.display = 'block';
+}
+
+function saveEditProduct(id) {
+    const newName = document.getElementById('edit-product-name').value.trim();
+    const newDescription = document.getElementById('edit-product-desc').value.trim();
+    const newPrice = parseFloat(document.getElementById('edit-product-price').value);
+    const newStock = parseInt(document.getElementById('edit-product-stock').value);
+    const newUnit = document.getElementById('edit-product-unit').value.trim();
+    const imageFile = document.getElementById('edit-product-image').files[0];
     
-    const newPrice = prompt('Nuovo prezzo (€):', product.price);
-    if (newPrice === null) return;
-    
-    const newStock = prompt('Nuovo stock:', product.stock);
-    if (newStock === null) return;
-    
-    const newUnit = prompt('Nuova unità di misura:', product.unit || 'kg');
-    if (newUnit === null) return;
-    
-    if (!newName.trim()) {
+    if (!newName) {
         alert('Il nome del prodotto non può essere vuoto');
         return;
     }
     
-    const price = parseFloat(newPrice);
-    if (isNaN(price) || price <= 0) {
+    if (isNaN(newPrice) || newPrice <= 0) {
         alert('Inserisci un prezzo valido');
         return;
     }
     
-    const stock = parseInt(newStock);
-    if (isNaN(stock) || stock < 0) {
+    if (isNaN(newStock) || newStock < 0) {
         alert('Inserisci uno stock valido');
         return;
     }
     
-    db.ref(`products/${id}`).update({
-        name: newName.trim(),
-        description: newDescription.trim(),
-        price: price,
-        stock: stock,
-        unit: newUnit.trim(),
-        categoryId: product.categoryId,
-        updatedAt: firebase.database.ServerValue.TIMESTAMP
-    }).then(() => {
-        alert('Prodotto aggiornato!');
-    }).catch(error => {
-        alert('Errore: ' + error.message);
-    });
+    const updateProduct = (imageData = null) => {
+        const updateData = {
+            name: newName,
+            description: newDescription,
+            price: newPrice,
+            stock: newStock,
+            unit: newUnit,
+            updatedAt: firebase.database.ServerValue.TIMESTAMP
+        };
+        
+        // Aggiorna l'immagine solo se ne è stata selezionata una nuova
+        if (imageData !== null) {
+            updateData.image = imageData;
+        }
+        
+        db.ref(`products/${id}`).update(updateData).then(() => {
+            alert('Prodotto aggiornato!');
+            closeEditModal();
+        }).catch(error => {
+            alert('Errore: ' + error.message);
+        });
+    };
+    
+    if (imageFile) {
+        fileToBase64(imageFile)
+            .then(base64 => updateProduct(base64))
+            .catch(error => {
+                console.error('Errore conversione immagine:', error);
+                alert('Errore nel caricamento dell\'immagine');
+            });
+    } else {
+        updateProduct();
+    }
 }
 
 function updateProductCategorySelect() {
@@ -439,3 +568,17 @@ function updateStats() {
     document.getElementById('active-products').textContent = activeProducts;
     document.getElementById('pending-orders').textContent = pendingOrders;
 }
+
+function closeEditModal() {
+    const modal = document.querySelector('.edit-modal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+// Chiudi modal cliccando fuori
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('edit-modal')) {
+        closeEditModal();
+    }
+});
