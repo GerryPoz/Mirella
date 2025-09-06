@@ -29,16 +29,11 @@ function initializeApp() {
 }
 
 function setupEventListeners() {
-    // Navigation - corretto per la nuova struttura navbar
-    document.querySelectorAll('.nav-links-modern .nav-item').forEach(link => {
+   // Navigation - correzione del selettore
+    document.querySelectorAll('.nav-menu .nav-link').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
-            const href = e.target.getAttribute('href');
-            if (href === '#logout') {
-                handleLogout();
-                return;
-            }
-            const section = href.substring(1);
+            const section = e.target.getAttribute('href').substring(1);
             showSection(section);
         });
     });
@@ -585,8 +580,12 @@ function showSection(sectionId, addToHistory = true) {
         return;
     }
     
-    document.querySelectorAll('.section').forEach(section => {
-        section.classList.remove('active');
+   // Update navbar active states - correzione del selettore
+    document.querySelectorAll('.nav-menu .nav-link').forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === `#${sectionId}`) {
+            link.classList.add('active');
+        }
     });
     
     const targetSection = document.getElementById(sectionId);
