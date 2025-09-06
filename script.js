@@ -112,8 +112,16 @@ function renderCategories() {
     const grid = document.getElementById('categories-grid');
     grid.innerHTML = categories.map(category => `
         <div class="category-card" onclick="filterByCategory('${category.id}')">
-            <h3>${category.name}</h3>
-            <p>${category.description || ''}</p>
+            <div class="category-image">
+                ${category.image ? 
+                    `<img src="${category.image}" alt="${category.name}" class="category-img">` : 
+                    `<div class="no-image category-placeholder">📂</div>`
+                }
+            </div>
+            <div class="category-content">
+                <h3>${category.name}</h3>
+                <p>${category.description || ''}</p>
+            </div>
         </div>
     `).join('');
 }
