@@ -30,21 +30,44 @@ function initializeApp() {
 }
 
 function setupEventListeners() {
-    // Navigation
-    document.querySelectorAll('.nav-menu .nav-link').forEach(link => {
+    // Navigation - esclude il link di autenticazione
+    document.querySelectorAll('.nav-menu .nav-link:not(#auth-link)').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             const targetId = link.getAttribute('href').substring(1);
             showSection(targetId);
             
             // Update active nav link
-            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            document.querySelectorAll('.nav-link:not(#auth-link)').forEach(l => l.classList.remove('active'));
             link.classList.add('active');
             
             // Close mobile menu
             document.getElementById('nav-menu').classList.remove('active');
         });
     });
+
+    // Authentication link handler - gestore dedicato
+    const authLink = document.getElementById('auth-link');
+    if (authLink) {
+        authLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (currentUser) {
+                // User is logged in, handle logout
+                handleLogout();
+            } else {
+                // User is not logged in, show login section
+                showSection('login');
+                // Update active nav link
+                document.querySelectorAll('.nav-link:not(#auth-link)').forEach(l => l.classList.remove('active'));
+                const loginNavLink = document.querySelector('a[href="#login"]:not(#auth-link)');
+                if (loginNavLink) {
+                    loginNavLink.classList.add('active');
+                }
+            }
+            // Close mobile menu
+            document.getElementById('nav-menu').classList.remove('active');
+        });
+    }
 
     // Mobile menu toggle
     const mobileToggle = document.getElementById('mobile-toggle');
@@ -105,34 +128,52 @@ function setupEventListeners() {
     }
     
     if (categoryFilter) {
-        categoryFilter.addEventListener('change', performSearch);
+        categoryFilter.addEventListener('change', () => {
+            const selectedCategory = categoryFilter.value;
+            filterByCategory(selectedCategory);
+        });
     }
     
     if (priceFilter) {
-        priceFilter.addEventListener('change', performSearch);
+        priceFilter.addEventListener('change', () => {
+            performSearch();
+        });
     }
 
-    // Checkout
-    const checkoutButton = document.getElementById('checkout-button');
-    if (checkoutButton) {
-        checkoutButton.addEventListener('click', handleCheckout);
-    }
+    // Cart buttons
+    document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('add-to-cart')) {
+            const productId = e.target.getAttribute('data-product-id');
+            addToCart(productId);
+        }
+        
+        if (e.target.classList.contains('remove-from-cart')) {
+            const productId = e.target.getAttribute('data-product-id');
+            removeFromCart(productId);
+        }
+        
+        if (e.target.classList.contains('quantity-btn')) {
+            const productId = e.target.getAttribute('data-product-id');
+            const change = e.target.classList.contains('increase') ? 1 : -1;
+            updateQuantity(productId, change);
+        }
+    });
 
-    // CTA Button
+    // CTA button
     const ctaButton = document.getElementById('cta-button');
     if (ctaButton) {
         ctaButton.addEventListener('click', () => {
             showSection('products');
-            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            document.querySelectorAll('.nav-link:not(#auth-link)').forEach(l => l.classList.remove('active'));
             document.querySelector('a[href="#products"]').classList.add('active');
         });
     }
 
-    // Handle browser back/forward
-    window.addEventListener('popstate', (e) => {
-        const section = e.state ? e.state.section : 'home';
-        showSection(section);
-    });
+    // Checkout button
+    const checkoutButton = document.getElementById('checkout-button');
+    if (checkoutButton) {
+        checkoutButton.addEventListener('click', handleCheckout);
+    }
 }
 
 function loadData() {
@@ -513,10 +554,8 @@ function updateAuthUI(isLoggedIn) {
     if (isLoggedIn && currentUser) {
         authLink.innerHTML = `<i class="fas fa-user"></i> ${currentUser.displayName || 'Utente'}`;
         authLink.href = '#';
-        authLink.onclick = (e) => {
-            e.preventDefault();
-            handleLogout();
-        };
+        // Non impostiamo onclick qui perché è gestito in setupEventListeners
+        authLink.onclick = null;
     } else {
         authLink.innerHTML = '<i class="fas fa-user"></i> Accedi';
         authLink.href = '#login';
