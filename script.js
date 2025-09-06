@@ -131,21 +131,32 @@ function setupEventListeners() {
 }
 
 function loadData() {
-    // Carica dati da Firebase
-    db.collection('categories').get().then(snapshot => {
+    // Carica categorie da Realtime Database
+    db.ref('categories').on('value', (snapshot) => {
         categories = [];
-        snapshot.forEach(doc => {
-            categories.push({ id: doc.id, ...doc.data() });
-        });
+        if (snapshot.exists()) {
+            snapshot.forEach((childSnapshot) => {
+                categories.push({ 
+                    id: childSnapshot.key, 
+                    ...childSnapshot.val() 
+                });
+            });
+        }
         renderCategories();
         updateCategoryFilter();
     });
     
-    db.collection('products').get().then(snapshot => {
+    // Carica prodotti da Realtime Database
+    db.ref('products').on('value', (snapshot) => {
         products = [];
-        snapshot.forEach(doc => {
-            products.push({ id: doc.id, ...doc.data() });
-        });
+        if (snapshot.exists()) {
+            snapshot.forEach((childSnapshot) => {
+                products.push({ 
+                    id: childSnapshot.key, 
+                    ...childSnapshot.val() 
+                });
+            });
+        }
         renderProducts();
         renderFeaturedProducts();
     });
@@ -455,56 +466,55 @@ function loadUserProfile() {
         `;
     }
     
-    // Carica ordini utente
-    db.collection('orders')
-        .where('userId', '==', currentUser.uid)
-        .orderBy('createdAt', 'desc')
-        .get()
-        .then(snapshot => {
-            const ordersContainer = document.getElementById('orders-history');
-            if (!ordersContainer) return;
-            
-            if (snapshot.empty) {
-                ordersContainer.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-shopping-bag" style="font-size: 3rem; color: #ccc; margin-bottom: 1rem;"></i>
-                        <h3>Nessun ordine trovato</h3>
-                        <p>I tuoi ordini appariranno qui</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            const orders = [];
-            snapshot.forEach(doc => {
-                orders.push({ id: doc.id, ...doc.data() });
-            });
-            
-            ordersContainer.innerHTML = orders.map(order => `
-                <div class="order-card">
-                    <div class="order-header">
-                        <h4>Ordine #${order.id.substring(0, 8)}</h4>
-                        <span class="order-status status-${order.status}">${getStatusText(order.status)}</span>
-                    </div>
-                    <div class="order-details">
-                        <p><strong>Data:</strong> ${new Date(order.createdAt.toDate()).toLocaleDateString('it-IT')}</p>
-                        <p><strong>Totale:</strong> €${order.total.toFixed(2)}</p>
-                        <p><strong>Indirizzo:</strong> ${order.address}</p>
-                    </div>
-                    <div class="order-items">
-                        ${order.items.map(item => `
-                            <div class="order-item">
-                                <span>${item.name} x${item.quantity}</span>
-                                <span>€${(item.price * item.quantity).toFixed(2)}</span>
-                            </div>
-                        `).join('')}
-                    </div>
+    // Carica ordini utente da Realtime Database
+    db.ref('orders').orderByChild('userId').equalTo(currentUser.uid).on('value', (snapshot) => {
+        const ordersContainer = document.getElementById('orders-history');
+        if (!ordersContainer) return;
+        
+        if (!snapshot.exists()) {
+            ordersContainer.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-shopping-bag" style="font-size: 3rem; color: #ccc; margin-bottom: 1rem;"></i>
+                    <h3>Nessun ordine trovato</h3>
+                    <p>I tuoi ordini appariranno qui</p>
                 </div>
-            `).join('');
-        })
-        .catch(error => {
-            console.error('Errore nel caricamento degli ordini:', error);
+            `;
+            return;
+        }
+        
+        const orders = [];
+        snapshot.forEach((childSnapshot) => {
+            orders.push({ 
+                id: childSnapshot.key, 
+                ...childSnapshot.val() 
+            });
         });
+        
+        // Ordina per data (più recenti prima)
+        orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        
+        ordersContainer.innerHTML = orders.map(order => `
+            <div class="order-card">
+                <div class="order-header">
+                    <h4>Ordine #${order.id.substring(0, 8)}</h4>
+                    <span class="order-status status-${order.status}">${getStatusText(order.status)}</span>
+                </div>
+                <div class="order-details">
+                    <p><strong>Data:</strong> ${new Date(order.createdAt).toLocaleDateString('it-IT')}</p>
+                    <p><strong>Totale:</strong> €${order.total.toFixed(2)}</p>
+                    <p><strong>Indirizzo:</strong> ${order.address}</p>
+                </div>
+                <div class="order-items">
+                    ${order.items.map(item => `
+                        <div class="order-item">
+                            <span>${item.name} x${item.quantity}</span>
+                            <span>€${(item.price * item.quantity).toFixed(2)}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `).join('');
+    });
 }
 
 function getStatusText(status) {
@@ -578,10 +588,11 @@ function handleCheckout(e) {
         phone: formData.get('phone'),
         notes: formData.get('notes') || '',
         status: 'pending',
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        createdAt: new Date().toISOString()
     };
     
-    db.collection('orders').add(orderData)
+    // Salva ordine nel Realtime Database
+    db.ref('orders').push(orderData)
         .then(() => {
             alert('Ordine inviato con successo!');
             cart = [];
