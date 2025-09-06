@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Gestisce la navigazione iniziale basata sull'URL
     const initialSection = getInitialSection();
-    showSection(initialSection, false); // false = non aggiungere alla cronologia
+    showSection(initialSection, false);
 });
 
 function initializeApp() {
@@ -29,11 +29,16 @@ function initializeApp() {
 }
 
 function setupEventListeners() {
-    // Navigation - corretto per la struttura HTML attuale
+    // Navigation - corretto per la nuova struttura navbar
     document.querySelectorAll('.nav-links-modern .nav-item').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
-            const section = e.target.getAttribute('href').substring(1);
+            const href = e.target.getAttribute('href');
+            if (href === '#logout') {
+                handleLogout();
+                return;
+            }
+            const section = href.substring(1);
             showSection(section);
         });
     });
@@ -47,21 +52,20 @@ function setupEventListeners() {
         }
     });
     
-    // Auth forms - aggiornati gli ID con controlli di esistenza
+    // Auth forms
     const loginSubmit = document.getElementById('login-submit');
     const registerSubmit = document.getElementById('register-submit');
-    const logoutBtn = document.getElementById('logout-btn');
     
     if (loginSubmit) loginSubmit.addEventListener('click', handleLogin);
     if (registerSubmit) registerSubmit.addEventListener('click', handleRegister);
-    if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
     
     // Form toggles
     const showRegister = document.getElementById('show-register');
     const showLogin = document.getElementById('show-login');
     
     if (showRegister) {
-        showRegister.addEventListener('click', () => {
+        showRegister.addEventListener('click', (e) => {
+            e.preventDefault();
             const loginForm = document.getElementById('login-form');
             const registerForm = document.getElementById('register-form');
             if (loginForm) loginForm.style.display = 'none';
@@ -70,7 +74,8 @@ function setupEventListeners() {
     }
     
     if (showLogin) {
-        showLogin.addEventListener('click', () => {
+        showLogin.addEventListener('click', (e) => {
+            e.preventDefault();
             const registerForm = document.getElementById('register-form');
             const loginForm = document.getElementById('login-form');
             if (registerForm) registerForm.style.display = 'none';
@@ -101,27 +106,17 @@ function setupEventListeners() {
             closeModal();
         }
     });
-    
-    // Aggiungi gestione per il menu mobile
-    const mobileToggle = document.querySelector('.mobile-menu-toggle');
-    const navLinks = document.querySelector('.nav-links-modern');
-    
-    if (mobileToggle && navLinks) {
-        mobileToggle.addEventListener('click', () => {
-            navLinks.classList.toggle('active');
-        });
-    }
 }
 
 function loadData() {
-    // Carica categorie dal Realtime Database
+    // Carica categorie
     db.ref('categories').on('value', (snapshot) => {
         categories = [];
         if (snapshot.exists()) {
             snapshot.forEach((childSnapshot) => {
-                categories.push({ 
-                    id: childSnapshot.key, 
-                    ...childSnapshot.val() 
+                categories.push({
+                    id: childSnapshot.key,
+                    ...childSnapshot.val()
                 });
             });
         }
@@ -129,14 +124,14 @@ function loadData() {
         updateCategoryFilter();
     });
     
-    // Carica prodotti dal Realtime Database
+    // Carica prodotti
     db.ref('products').on('value', (snapshot) => {
         products = [];
         if (snapshot.exists()) {
             snapshot.forEach((childSnapshot) => {
-                products.push({ 
-                    id: childSnapshot.key, 
-                    ...childSnapshot.val() 
+                products.push({
+                    id: childSnapshot.key,
+                    ...childSnapshot.val()
                 });
             });
         }
@@ -155,15 +150,13 @@ function renderCategories() {
                 ${category.image ? 
                     `<img src="${category.image}" alt="${category.name}" loading="lazy">` : 
                     `<div class="no-image-placeholder">
-                        <i class="fas fa-image"></i>
+                        <i class="fas fa-folder"></i>
                         <span>Nessuna immagine</span>
                     </div>`
                 }
             </div>
-            <div class="category-info">
-                <h3>${category.name}</h3>
-                <p>${category.description || ''}</p>
-            </div>
+            <h3>${category.name}</h3>
+            <p>${category.description || ''}</p>
         </div>
     `).join('');
 }
@@ -229,25 +222,16 @@ function renderFeaturedProducts() {
 }
 
 function getFilteredProducts() {
-    let filtered = products;
+    const searchTerm = document.getElementById('search-input')?.value.toLowerCase() || '';
+    const categoryFilter = document.getElementById('category-filter')?.value || '';
     
-    // Filtro per categoria
-    const categoryFilter = document.getElementById('category-filter');
-    if (categoryFilter && categoryFilter.value) {
-        filtered = filtered.filter(p => p.categoryId === categoryFilter.value);
-    }
-    
-    // Filtro per ricerca
-    const searchInput = document.getElementById('search-input');
-    if (searchInput && searchInput.value.trim()) {
-        const searchTerm = searchInput.value.toLowerCase();
-        filtered = filtered.filter(p => 
-            p.name.toLowerCase().includes(searchTerm) ||
-            (p.description && p.description.toLowerCase().includes(searchTerm))
-        );
-    }
-    
-    return filtered;
+    return products.filter(product => {
+        const matchesSearch = product.name.toLowerCase().includes(searchTerm) ||
+                            (product.description && product.description.toLowerCase().includes(searchTerm));
+        const matchesCategory = !categoryFilter || product.categoryId === categoryFilter;
+        
+        return matchesSearch && matchesCategory;
+    });
 }
 
 function filterProducts() {
@@ -274,53 +258,47 @@ function updateCategoryFilter() {
 // Funzioni carrello
 function addToCart(productId) {
     const product = products.find(p => p.id === productId);
-    if (!product || product.stock <= 0) return;
+    if (!product || product.stock <= 0) {
+        alert('Prodotto non disponibile');
+        return;
+    }
     
-    const existingItem = cart.find(item => item.productId === productId);
+    const existingItem = cart.find(item => item.id === productId);
     
     if (existingItem) {
         if (existingItem.quantity < product.stock) {
             existingItem.quantity += 1;
         } else {
-            alert('Quantità massima disponibile raggiunta');
+            alert('Quantità massima raggiunta per questo prodotto');
             return;
         }
     } else {
         cart.push({
-            productId: productId,
+            id: product.id,
             name: product.name,
             price: product.price,
-            unit: product.unit,
             quantity: 1,
-            image: product.image
+            unit: product.unit || 'pz'
         });
     }
     
     localStorage.setItem('cart', JSON.stringify(cart));
     updateCartUI();
-    
-    // Feedback visivo
-    const button = event.target;
-    const originalText = button.textContent;
-    button.textContent = 'Aggiunto!';
-    button.style.backgroundColor = '#28a745';
-    
-    setTimeout(() => {
-        button.textContent = originalText;
-        button.style.backgroundColor = '';
-    }, 1000);
+    alert('Prodotto aggiunto al carrello!');
 }
 
 function changeQuantity(productId, change) {
-    const item = cart.find(item => item.productId === productId);
-    if (item) {
-        item.quantity += change;
-        if (item.quantity <= 0) {
-            cart = cart.filter(item => item.productId !== productId);
+    const item = cart.find(item => item.id === productId);
+    const product = products.find(p => p.id === productId);
+    
+    if (item && product) {
+        const newQuantity = item.quantity + change;
+        if (newQuantity > 0 && newQuantity <= product.stock) {
+            item.quantity = newQuantity;
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartUI();
         }
     }
-    localStorage.setItem('cart', JSON.stringify(cart));
-    updateCartUI();
 }
 
 function updateCartUI() {
@@ -330,29 +308,23 @@ function updateCartUI() {
     
     if (cartItems) {
         if (cart.length === 0) {
-            cartItems.innerHTML = '<p class="empty-cart">Il carrello è vuoto</p>';
+            cartItems.innerHTML = '<p>Il carrello è vuoto</p>';
         } else {
             cartItems.innerHTML = cart.map((item, index) => `
                 <div class="cart-item">
-                    <div class="cart-item-image">
-                        ${item.image ? 
-                            `<img src="${item.image}" alt="${item.name}">` : 
-                            `<div class="no-image-placeholder"><i class="fas fa-image"></i></div>`
-                        }
-                    </div>
-                    <div class="cart-item-info">
+                    <div class="item-info">
                         <h4>${item.name}</h4>
-                        <p>€${item.price.toFixed(2)}/${item.unit || 'pz'}</p>
+                        <p>€${item.price.toFixed(2)}/${item.unit}</p>
                     </div>
-                    <div class="cart-item-controls">
+                    <div class="item-controls">
                         <button onclick="updateCartQuantity(${index}, -1)">-</button>
-                        <span>${item.quantity}</span>
+                        <span class="quantity">${item.quantity}</span>
                         <button onclick="updateCartQuantity(${index}, 1)">+</button>
+                        <button onclick="removeFromCart(${index})" class="remove-btn">Rimuovi</button>
                     </div>
-                    <div class="cart-item-total">
+                    <div class="item-total">
                         €${(item.price * item.quantity).toFixed(2)}
                     </div>
-                    <button class="btn-remove" onclick="removeFromCart(${index})">×</button>
                 </div>
             `).join('');
         }
@@ -360,12 +332,11 @@ function updateCartUI() {
     
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     if (cartTotal) {
-        cartTotal.textContent = `€${total.toFixed(2)}`;
+        cartTotal.textContent = total.toFixed(2);
     }
     
-    // Aggiorna il badge del carrello
-    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
     if (cartBadge) {
+        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
         cartBadge.textContent = totalItems;
         cartBadge.style.display = totalItems > 0 ? 'inline' : 'none';
     }
@@ -373,20 +344,18 @@ function updateCartUI() {
 
 function updateCartQuantity(index, change) {
     const item = cart[index];
-    const product = products.find(p => p.id === item.productId);
+    const product = products.find(p => p.id === item.id);
     
-    if (change > 0 && product && item.quantity >= product.stock) {
-        alert('Quantità massima disponibile raggiunta');
-        return;
+    if (product) {
+        const newQuantity = item.quantity + change;
+        if (newQuantity > 0 && newQuantity <= product.stock) {
+            item.quantity = newQuantity;
+        } else if (newQuantity <= 0) {
+            cart.splice(index, 1);
+        }
+        localStorage.setItem('cart', JSON.stringify(cart));
+        updateCartUI();
     }
-    
-    item.quantity += change;
-    if (item.quantity <= 0) {
-        cart.splice(index, 1);
-    }
-    
-    localStorage.setItem('cart', JSON.stringify(cart));
-    updateCartUI();
 }
 
 function removeFromCart(index) {
@@ -399,6 +368,11 @@ function removeFromCart(index) {
 function handleLogin() {
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
+    
+    if (!email || !password) {
+        alert('Inserisci email e password');
+        return;
+    }
     
     auth.signInWithEmailAndPassword(email, password)
         .then(userCredential => {
@@ -413,19 +387,17 @@ function handleLogin() {
 function handleRegister() {
     const email = document.getElementById('register-email').value;
     const password = document.getElementById('register-password').value;
-    const confirmPassword = document.getElementById('register-confirm-password').value;
     const name = document.getElementById('register-name').value;
     const phone = document.getElementById('register-phone').value;
     const address = document.getElementById('register-address').value;
     
-    if (password !== confirmPassword) {
-        alert('Le password non coincidono');
+    if (!email || !password || !name) {
+        alert('Compila tutti i campi obbligatori');
         return;
     }
     
     auth.createUserWithEmailAndPassword(email, password)
         .then(userCredential => {
-            // Salva informazioni aggiuntive dell'utente nel Realtime Database
             return db.ref(`users/${userCredential.user.uid}`).set({
                 name: name,
                 email: email,
@@ -459,7 +431,6 @@ function loadUserProfile() {
         if (snapshot.exists()) {
             const userData = snapshot.val();
             
-            // Popola i campi del profilo
             const fields = ['profile-name', 'profile-email', 'profile-phone', 'profile-address'];
             fields.forEach(fieldId => {
                 const field = document.getElementById(fieldId);
@@ -490,7 +461,6 @@ function loadUserProfile() {
                 });
             });
             
-            // Ordina per data (più recenti prima)
             orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
             
             ordersContainer.innerHTML = orders.map(order => {
@@ -538,7 +508,6 @@ function showCheckoutModal() {
     if (modal) {
         modal.style.display = 'block';
         
-        // Popola il riepilogo dell'ordine
         const orderSummary = document.getElementById('order-summary');
         if (orderSummary) {
             const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -596,38 +565,34 @@ function handleCheckout(e) {
 }
 
 function closeModal() {
-    const modals = document.querySelectorAll('.modal');
-    modals.forEach(modal => {
+    const modal = document.getElementById('checkout-modal');
+    if (modal) {
         modal.style.display = 'none';
-    });
+    }
 }
 
-// Funzioni di navigazione
 function closeNavbarCollapse() {
-    const navbarCollapse = document.querySelector('.navbar-collapse');
-    if (navbarCollapse && navbarCollapse.classList.contains('show')) {
-        navbarCollapse.classList.remove('show');
-    }
+    // Funzione per chiudere il menu mobile se necessario
 }
 
 function showSection(sectionId, addToHistory = true) {
-    // Chiudi il menu mobile se aperto
-    const navLinks = document.querySelector('.nav-links-modern');
-    if (navLinks && navLinks.classList.contains('active')) {
-        navLinks.classList.remove('active');
+    closeNavbarCollapse();
+    
+    // Controllo autenticazione per sezione profile
+    if (sectionId === 'profile' && !currentUser) {
+        alert('Devi effettuare il login per accedere al profilo');
+        showSection('login');
+        return;
     }
     
-    // Rimuove la classe active da tutte le sezioni
     document.querySelectorAll('.section').forEach(section => {
         section.classList.remove('active');
     });
     
-    // Aggiunge la classe active alla sezione corrente
     const targetSection = document.getElementById(sectionId);
     if (targetSection) {
         targetSection.classList.add('active');
         
-        // Aggiorna gli stati attivi nella navbar
         document.querySelectorAll('.nav-links-modern .nav-item').forEach(link => {
             link.classList.remove('active');
             if (link.getAttribute('href') === `#${sectionId}`) {
@@ -635,7 +600,6 @@ function showSection(sectionId, addToHistory = true) {
             }
         });
         
-        // Aggiunge alla cronologia del browser se richiesto
         if (addToHistory) {
             const state = { section: sectionId };
             const title = `${getPageTitle(sectionId)} - Azienda Agricola`;
@@ -648,21 +612,19 @@ function showSection(sectionId, addToHistory = true) {
 }
 
 function getInitialSection() {
-    // Ottiene la sezione dall'URL hash
     const hash = window.location.hash.substring(1);
-    const validSections = ['home', 'categories', 'products', 'cart', 'login', 'profile'];
+    const validSections = ['home', 'products', 'cart', 'login', 'profile'];
     
     if (hash && validSections.includes(hash)) {
         return hash;
     }
     
-    return 'home'; // sezione predefinita
+    return 'home';
 }
 
 function getPageTitle(sectionId) {
     const titles = {
         'home': 'Home',
-        'categories': 'Categorie',
         'products': 'Prodotti',
         'cart': 'Carrello',
         'login': 'Accesso',
@@ -673,9 +635,9 @@ function getPageTitle(sectionId) {
 }
 
 function updateUI() {
-    const loginLink = document.querySelector('a[href="#login"]');
-    const profileLink = document.querySelector('a[href="#profile"]');
-    const logoutBtn = document.querySelector('a[href="#logout"]');
+    const loginLink = document.getElementById('login-link');
+    const profileLink = document.getElementById('profile-link');
+    const logoutBtn = document.getElementById('logout-btn');
     
     if (currentUser) {
         if (loginLink) loginLink.style.display = 'none';
@@ -687,7 +649,6 @@ function updateUI() {
         if (logoutBtn) logoutBtn.style.display = 'none';
     }
     
-    // Aggiorna il badge del carrello se presente
     const cartBadge = document.querySelector('.cart-badge');
     if (cartBadge) {
         const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
