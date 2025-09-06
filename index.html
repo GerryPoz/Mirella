@@ -8,17 +8,30 @@
 </head>
 <body>
     <header>
-        <nav class="navbar">
-            <div class="nav-brand">
-                <h1>🌱 Mirella Agricola</h1>
+        <nav class="navbar-modern">
+            <div class="nav-brand-modern">
+                <div class="brand-icon">🌱</div>
+                <div class="brand-text">
+                    <h1>Mirella Agricola</h1>
+                    <span class="brand-tagline">Freschezza Naturale</span>
+                </div>
             </div>
-            <div class="nav-links">
-                <a href="#home">Home</a>
-                <a href="#products">Prodotti</a>
-                <a href="#cart" id="cart-link">Carrello (<span id="cart-count">0</span>)</a>
-                <a href="#login" id="login-link">Accedi</a>
-                <a href="#profile" id="profile-link" style="display:none">Profilo</a>
-                <button id="logout-btn" style="display:none">Esci</button>
+            <div class="nav-links-modern">
+                <a href="#home" class="nav-item"><span class="nav-icon">🏠</span>Home</a>
+                <a href="#products" class="nav-item"><span class="nav-icon">🛒</span>Prodotti</a>
+                <a href="#cart" id="cart-link" class="nav-item cart-item">
+                    <span class="nav-icon">🛍️</span>
+                    Carrello 
+                    <span class="cart-badge" id="cart-count">0</span>
+                </a>
+                <a href="#login" id="login-link" class="nav-item"><span class="nav-icon">👤</span>Accedi</a>
+                <a href="#profile" id="profile-link" class="nav-item" style="display:none"><span class="nav-icon">👤</span>Profilo</a>
+                <button id="logout-btn" class="logout-btn-modern" style="display:none">Esci</button>
+            </div>
+            <div class="mobile-menu-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
             </div>
         </nav>
     </header>
@@ -26,19 +39,40 @@
     <main>
         <!-- Home Section -->
         <section id="home" class="section active">
-            <div class="hero">
-                <h2>Prodotti Agricoli Freschi</h2>
-                <p>Direttamente dal nostro campo alla tua tavola</p>
+            <div class="hero-modern">
+                <div class="hero-content">
+                    <div class="hero-icon">🌱</div>
+                    <h2 class="hero-title">Prodotti Agricoli Freschi</h2>
+                    <p class="hero-subtitle">Direttamente dal nostro campo alla tua tavola</p>
+                    <div class="hero-features">
+                        <span class="feature-badge">🌿 100% Naturale</span>
+                        <span class="feature-badge">🚚 Consegna Fresca</span>
+                        <span class="feature-badge">❤️ Km Zero</span>
+                    </div>
+                    <button class="cta-button" onclick="showSection('products')">Scopri i Prodotti</button>
+                </div>
+                <div class="hero-decoration">
+                    <div class="floating-element">🍅</div>
+                    <div class="floating-element">🥕</div>
+                    <div class="floating-element">🌽</div>
+                    <div class="floating-element">🥬</div>
+                </div>
             </div>
             
-            <div class="categories">
-                <h3>Categorie</h3>
-                <div id="categories-grid" class="grid"></div>
+            <div class="categories-modern">
+                <div class="section-header">
+                    <h3 class="section-title">🎯 Esplora le Categorie</h3>
+                    <p class="section-subtitle">Trova quello che cerchi nella nostra selezione</p>
+                </div>
+                <div id="categories-grid" class="grid-modern"></div>
             </div>
             
-            <div class="featured-products">
-                <h3>Prodotti in Evidenza</h3>
-                <div id="featured-grid" class="grid"></div>
+            <div class="featured-products-modern">
+                <div class="section-header">
+                    <h3 class="section-title">⭐ Prodotti in Evidenza</h3>
+                    <p class="section-subtitle">I nostri prodotti più amati dai clienti</p>
+                </div>
+                <div id="featured-grid" class="grid-modern"></div>
             </div>
         </section>
 
@@ -78,8 +112,8 @@
                     <h2>Registrati</h2>
                     <input type="text" id="register-name" placeholder="Nome completo" required>
                     <input type="email" id="register-email" placeholder="Email" required>
-                    <input type="tel" id="register-phone" placeholder="Telefono">
-                    <textarea id="register-address" placeholder="Indirizzo"></textarea>
+                    <input type="tel" id="register-phone" placeholder="Telefono" required>
+                    <input type="text" id="register-address" placeholder="Indirizzo" required>
                     <input type="password" id="register-password" placeholder="Password" required>
                     <button id="register-submit" class="btn-primary">Registrati</button>
                     <p>Hai già un account? <a href="#" id="show-login">Accedi</a></p>
@@ -90,48 +124,39 @@
         <!-- Profile Section -->
         <section id="profile" class="section">
             <h2>Il Mio Profilo</h2>
-            <div class="profile-info">
-                <h3>Informazioni Personali</h3>
-                <div id="profile-details"></div>
-            </div>
+            <div id="profile-info"></div>
             
-            <div class="orders-history">
+            <div class="profile-section">
                 <h3>I Miei Ordini</h3>
                 <div id="orders-list"></div>
             </div>
         </section>
-
-        <!-- Checkout Modal -->
-        <div id="checkout-modal" class="modal">
-            <div class="modal-content">
-                <span class="close">&times;</span>
-                <h2>Completa l'Ordine</h2>
-                <form id="checkout-form">
-                    <div class="form-group">
-                        <label>Data di Ritiro:</label>
-                        <input type="date" id="pickup-date" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Note (opzionale):</label>
-                        <textarea id="order-notes" placeholder="Eventuali richieste speciali..."></textarea>
-                    </div>
-                    <div class="order-summary">
-                        <h3>Riepilogo Ordine</h3>
-                        <div id="checkout-items"></div>
-                        <div class="total">Totale: €<span id="checkout-total">0.00</span></div>
-                    </div>
-                    <button type="submit" class="btn-primary">Conferma Ordine</button>
-                </form>
-            </div>
-        </div>
     </main>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth-compat.js"></script>
-    
-    <!-- App Scripts -->
+    <!-- Checkout Modal -->
+    <div id="checkout-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Completa l'Ordine</h2>
+            <form id="checkout-form">
+                <div class="form-group">
+                    <label>Data di Ritiro:</label>
+                    <input type="date" id="pickup-date" required>
+                </div>
+                <div class="form-group">
+                    <label>Note aggiuntive:</label>
+                    <textarea id="order-notes" placeholder="Note per l'ordine (opzionale)"></textarea>
+                </div>
+                <div class="order-summary">
+                    <h3>Riepilogo Ordine</h3>
+                    <div id="checkout-items"></div>
+                    <div class="total">Totale: €<span id="checkout-total">0.00</span></div>
+                </div>
+                <button type="submit" class="btn-primary">Conferma Ordine</button>
+            </form>
+        </div>
+    </div>
+
     <script src="firebase-config.js"></script>
     <script src="script.js"></script>
 </body>
