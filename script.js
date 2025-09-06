@@ -29,8 +29,8 @@ function initializeApp() {
 }
 
 function setupEventListeners() {
-    // Navigation
-    document.querySelectorAll('.nav-links a').forEach(link => {
+    // Navigation - aggiornato per la nuova struttura navbar
+    document.querySelectorAll('.navbar-nav .nav-link').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             const section = e.target.getAttribute('href').substring(1);
@@ -41,67 +41,94 @@ function setupEventListeners() {
     // Gestione pulsanti avanti/indietro del browser
     window.addEventListener('popstate', (e) => {
         if (e.state && e.state.section) {
-            showSection(e.state.section, false); // false = non aggiungere alla cronologia
+            showSection(e.state.section, false);
         } else {
             showSection('home', false);
         }
     });
     
-    // Auth forms
-    document.getElementById('login-submit').addEventListener('click', handleLogin);
-    document.getElementById('register-submit').addEventListener('click', handleRegister);
-    document.getElementById('logout-btn').addEventListener('click', handleLogout);
+    // Auth forms - aggiornati gli ID con controlli di esistenza
+    const loginSubmit = document.getElementById('login-submit');
+    const registerSubmit = document.getElementById('register-submit');
+    const logoutBtn = document.getElementById('logout-btn');
+    
+    if (loginSubmit) loginSubmit.addEventListener('click', handleLogin);
+    if (registerSubmit) registerSubmit.addEventListener('click', handleRegister);
+    if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
     
     // Form toggles
-    document.getElementById('show-register').addEventListener('click', () => {
-        document.getElementById('login-form').style.display = 'none';
-        document.getElementById('register-form').style.display = 'block';
-    });
+    const showRegister = document.getElementById('show-register');
+    const showLogin = document.getElementById('show-login');
     
-    document.getElementById('show-login').addEventListener('click', () => {
-        document.getElementById('register-form').style.display = 'none';
-        document.getElementById('login-form').style.display = 'block';
-    });
+    if (showRegister) {
+        showRegister.addEventListener('click', () => {
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+            if (loginForm) loginForm.style.display = 'none';
+            if (registerForm) registerForm.style.display = 'block';
+        });
+    }
+    
+    if (showLogin) {
+        showLogin.addEventListener('click', () => {
+            const registerForm = document.getElementById('register-form');
+            const loginForm = document.getElementById('login-form');
+            if (registerForm) registerForm.style.display = 'none';
+            if (loginForm) loginForm.style.display = 'block';
+        });
+    }
     
     // Search and filters
-    document.getElementById('search-input').addEventListener('input', filterProducts);
-    document.getElementById('category-filter').addEventListener('change', filterProducts);
+    const searchInput = document.getElementById('search-input');
+    const categoryFilter = document.getElementById('category-filter');
+    
+    if (searchInput) searchInput.addEventListener('input', filterProducts);
+    if (categoryFilter) categoryFilter.addEventListener('change', filterProducts);
     
     // Checkout
-    document.getElementById('checkout-btn').addEventListener('click', showCheckoutModal);
-    document.getElementById('checkout-form').addEventListener('submit', handleCheckout);
+    const checkoutBtn = document.getElementById('checkout-btn');
+    const checkoutForm = document.getElementById('checkout-form');
+    
+    if (checkoutBtn) checkoutBtn.addEventListener('click', showCheckoutModal);
+    if (checkoutForm) checkoutForm.addEventListener('submit', handleCheckout);
     
     // Modal close
-    document.querySelector('.close').addEventListener('click', closeModal);
+    const closeBtn = document.querySelector('.close');
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    
     window.addEventListener('click', (e) => {
         if (e.target.classList.contains('modal')) {
             closeModal();
         }
     });
+    
+    // Aggiungi gestione per il menu mobile
+    const navbarToggler = document.querySelector('.navbar-toggler');
+    const navbarCollapse = document.querySelector('.navbar-collapse');
+    
+    if (navbarToggler && navbarCollapse) {
+        navbarToggler.addEventListener('click', () => {
+            navbarCollapse.classList.toggle('show');
+        });
+    }
 }
 
 function loadData() {
     // Carica categorie
-    db.ref('categories').on('value', (snapshot) => {
+    db.collection('categories').get().then(snapshot => {
         categories = [];
-        snapshot.forEach((child) => {
-            categories.push({
-                id: child.key,
-                ...child.val()
-            });
+        snapshot.forEach(doc => {
+            categories.push({ id: doc.id, ...doc.data() });
         });
         renderCategories();
         updateCategoryFilter();
     });
     
     // Carica prodotti
-    db.ref('products').on('value', (snapshot) => {
+    db.collection('products').get().then(snapshot => {
         products = [];
-        snapshot.forEach((child) => {
-            products.push({
-                id: child.key,
-                ...child.val()
-            });
+        snapshot.forEach(doc => {
+            products.push({ id: doc.id, ...doc.data() });
         });
         renderProducts();
         renderFeaturedProducts();
@@ -109,16 +136,21 @@ function loadData() {
 }
 
 function renderCategories() {
-    const grid = document.getElementById('categories-grid');
-    grid.innerHTML = categories.map(category => `
+    const container = document.getElementById('categories-grid');
+    if (!container) return;
+    
+    container.innerHTML = categories.map(category => `
         <div class="category-card" onclick="filterByCategory('${category.id}')">
             <div class="category-image">
                 ${category.image ? 
-                    `<img src="${category.image}" alt="${category.name}" class="category-img">` : 
-                    `<div class="no-image category-placeholder">📂</div>`
+                    `<img src="${category.image}" alt="${category.name}" loading="lazy">` : 
+                    `<div class="no-image-placeholder">
+                        <i class="fas fa-image"></i>
+                        <span>Nessuna immagine</span>
+                    </div>`
                 }
             </div>
-            <div class="category-content">
+            <div class="category-info">
                 <h3>${category.name}</h3>
                 <p>${category.description || ''}</p>
             </div>
@@ -127,38 +159,61 @@ function renderCategories() {
 }
 
 function renderProducts() {
-    const grid = document.getElementById('products-grid');
+    const container = document.getElementById('products-grid');
+    if (!container) return;
+    
     const filteredProducts = getFilteredProducts();
     
-    grid.innerHTML = filteredProducts.map(product => `
+    container.innerHTML = filteredProducts.map(product => `
         <div class="product-card">
-            ${product.image ? `<img src="${product.image}" alt="${product.name}">` : '<div class="no-image">📦</div>'}
-            <h3>${product.name}</h3>
-            <p class="description">${product.description || ''}</p>
-            <div class="price">€${product.price.toFixed(2)}/${product.unit || 'kg'}</div>
-            <div class="stock">Disponibili: ${product.stock}</div>
-            ${product.stock > 0 ? `
-                <div class="quantity-controls">
-                    <button onclick="changeQuantity('${product.id}', -1)">-</button>
-                    <span id="qty-${product.id}">1</span>
-                    <button onclick="changeQuantity('${product.id}', 1)">+</button>
-                </div>
-                <button onclick="addToCart('${product.id}')" class="btn-primary">Aggiungi al Carrello</button>
-            ` : '<button class="btn-disabled" disabled>Esaurito</button>'}
+            <div class="product-image">
+                ${product.image ? 
+                    `<img src="${product.image}" alt="${product.name}" loading="lazy">` : 
+                    `<div class="no-image-placeholder">
+                        <i class="fas fa-image"></i>
+                        <span>Nessuna immagine</span>
+                    </div>`
+                }
+            </div>
+            <div class="product-info">
+                <h3>${product.name}</h3>
+                <p class="product-description">${product.description || ''}</p>
+                <div class="product-price">€${product.price.toFixed(2)}/${product.unit || 'pz'}</div>
+                <div class="product-stock">Disponibili: ${product.stock}</div>
+                <button class="btn btn-primary" onclick="addToCart('${product.id}')" 
+                        ${product.stock <= 0 ? 'disabled' : ''}>
+                    ${product.stock <= 0 ? 'Esaurito' : 'Aggiungi al Carrello'}
+                </button>
+            </div>
         </div>
     `).join('');
 }
 
 function renderFeaturedProducts() {
-    const grid = document.getElementById('featured-grid');
-    const featured = products.filter(p => p.stock > 0).slice(0, 6);
+    const container = document.getElementById('featured-products-grid');
+    if (!container) return;
     
-    grid.innerHTML = featured.map(product => `
-        <div class="product-card">
-            ${product.image ? `<img src="${product.image}" alt="${product.name}">` : '<div class="no-image">📦</div>'}
-            <h3>${product.name}</h3>
-            <div class="price">€${product.price.toFixed(2)}/${product.unit || 'kg'}</div>
-            <button onclick="addToCart('${product.id}')" class="btn-primary">Aggiungi</button>
+    const featuredProducts = products.filter(p => p.featured).slice(0, 6);
+    
+    container.innerHTML = featuredProducts.map(product => `
+        <div class="product-card featured">
+            <div class="product-image">
+                ${product.image ? 
+                    `<img src="${product.image}" alt="${product.name}" loading="lazy">` : 
+                    `<div class="no-image-placeholder">
+                        <i class="fas fa-image"></i>
+                        <span>Nessuna immagine</span>
+                    </div>`
+                }
+            </div>
+            <div class="product-info">
+                <h3>${product.name}</h3>
+                <div class="product-price">€${product.price.toFixed(2)}/${product.unit || 'pz'}</div>
+                <button class="btn btn-primary" onclick="addToCart('${product.id}')" 
+                        ${product.stock <= 0 ? 'disabled' : ''}>
+                    ${product.stock <= 0 ? 'Esaurito' : 'Aggiungi'}
+                </button>
+            </div>
         </div>
     `).join('');
 }
@@ -166,18 +221,20 @@ function renderFeaturedProducts() {
 function getFilteredProducts() {
     let filtered = products;
     
-    const searchTerm = document.getElementById('search-input').value.toLowerCase();
-    const categoryFilter = document.getElementById('category-filter').value;
+    // Filtro per categoria
+    const categoryFilter = document.getElementById('category-filter');
+    if (categoryFilter && categoryFilter.value) {
+        filtered = filtered.filter(p => p.categoryId === categoryFilter.value);
+    }
     
-    if (searchTerm) {
+    // Filtro per ricerca
+    const searchInput = document.getElementById('search-input');
+    if (searchInput && searchInput.value.trim()) {
+        const searchTerm = searchInput.value.toLowerCase();
         filtered = filtered.filter(p => 
             p.name.toLowerCase().includes(searchTerm) ||
             (p.description && p.description.toLowerCase().includes(searchTerm))
         );
-    }
-    
-    if (categoryFilter) {
-        filtered = filtered.filter(p => p.categoryId === categoryFilter);
     }
     
     return filtered;
@@ -188,85 +245,136 @@ function filterProducts() {
 }
 
 function filterByCategory(categoryId) {
-    document.getElementById('category-filter').value = categoryId;
+    const categoryFilter = document.getElementById('category-filter');
+    if (categoryFilter) {
+        categoryFilter.value = categoryId;
+    }
     showSection('products');
     filterProducts();
 }
 
 function updateCategoryFilter() {
     const select = document.getElementById('category-filter');
+    if (!select) return;
+    
     select.innerHTML = '<option value="">Tutte le categorie</option>' +
         categories.map(cat => `<option value="${cat.id}">${cat.name}</option>`).join('');
 }
 
-// Gestione carrello
+// Funzioni carrello
 function addToCart(productId) {
-    if (!currentUser) {
-        alert('Devi effettuare l\'accesso per aggiungere prodotti al carrello');
-        showSection('login');
-        return;
-    }
-    
     const product = products.find(p => p.id === productId);
-    const quantity = parseInt(document.getElementById(`qty-${productId}`).textContent);
+    if (!product || product.stock <= 0) return;
     
     const existingItem = cart.find(item => item.productId === productId);
     
     if (existingItem) {
-        existingItem.quantity += quantity;
+        if (existingItem.quantity < product.stock) {
+            existingItem.quantity += 1;
+        } else {
+            alert('Quantità massima disponibile raggiunta');
+            return;
+        }
     } else {
         cart.push({
-            productId,
+            productId: productId,
             name: product.name,
             price: product.price,
             unit: product.unit,
-            quantity
+            quantity: 1,
+            image: product.image
         });
     }
     
     localStorage.setItem('cart', JSON.stringify(cart));
     updateCartUI();
-    alert(`${product.name} aggiunto al carrello!`);
+    
+    // Feedback visivo
+    const button = event.target;
+    const originalText = button.textContent;
+    button.textContent = 'Aggiunto!';
+    button.style.backgroundColor = '#28a745';
+    
+    setTimeout(() => {
+        button.textContent = originalText;
+        button.style.backgroundColor = '';
+    }, 1000);
 }
 
 function changeQuantity(productId, change) {
-    const qtyElement = document.getElementById(`qty-${productId}`);
-    let qty = parseInt(qtyElement.textContent) + change;
-    qty = Math.max(1, qty);
-    qtyElement.textContent = qty;
+    const item = cart.find(item => item.productId === productId);
+    if (item) {
+        item.quantity += change;
+        if (item.quantity <= 0) {
+            cart = cart.filter(item => item.productId !== productId);
+        }
+    }
+    localStorage.setItem('cart', JSON.stringify(cart));
+    updateCartUI();
 }
 
 function updateCartUI() {
-    const count = cart.reduce((sum, item) => sum + item.quantity, 0);
-    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    
-    document.getElementById('cart-count').textContent = count;
-    document.getElementById('cart-total').textContent = total.toFixed(2);
-    
     const cartItems = document.getElementById('cart-items');
-    if (cart.length === 0) {
-        cartItems.innerHTML = '<p>Il carrello è vuoto</p>';
-    } else {
-        cartItems.innerHTML = cart.map((item, index) => `
-            <div class="cart-item">
-                <h4>${item.name}</h4>
-                <div class="item-controls">
-                    <button onclick="updateCartQuantity(${index}, -1)">-</button>
-                    <span>${item.quantity} ${item.unit}</span>
-                    <button onclick="updateCartQuantity(${index}, 1)">+</button>
-                    <button onclick="removeFromCart(${index})" class="btn-remove">Rimuovi</button>
+    const cartTotal = document.getElementById('cart-total');
+    const cartBadge = document.querySelector('.cart-badge');
+    
+    if (cartItems) {
+        if (cart.length === 0) {
+            cartItems.innerHTML = '<p class="empty-cart">Il carrello è vuoto</p>';
+        } else {
+            cartItems.innerHTML = cart.map((item, index) => `
+                <div class="cart-item">
+                    <div class="cart-item-image">
+                        ${item.image ? 
+                            `<img src="${item.image}" alt="${item.name}">` : 
+                            `<div class="no-image-placeholder"><i class="fas fa-image"></i></div>`
+                        }
+                    </div>
+                    <div class="cart-item-info">
+                        <h4>${item.name}</h4>
+                        <p>€${item.price.toFixed(2)}/${item.unit || 'pz'}</p>
+                    </div>
+                    <div class="cart-item-controls">
+                        <button onclick="updateCartQuantity(${index}, -1)">-</button>
+                        <span>${item.quantity}</span>
+                        <button onclick="updateCartQuantity(${index}, 1)">+</button>
+                    </div>
+                    <div class="cart-item-total">
+                        €${(item.price * item.quantity).toFixed(2)}
+                    </div>
+                    <button class="btn-remove" onclick="removeFromCart(${index})">×</button>
                 </div>
-                <div class="item-total">€${(item.price * item.quantity).toFixed(2)}</div>
-            </div>
-        `).join('');
+            `).join('');
+        }
+    }
+    
+    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    if (cartTotal) {
+        cartTotal.textContent = `€${total.toFixed(2)}`;
+    }
+    
+    // Aggiorna il badge del carrello
+    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+    if (cartBadge) {
+        cartBadge.textContent = totalItems;
+        cartBadge.style.display = totalItems > 0 ? 'inline' : 'none';
     }
 }
 
 function updateCartQuantity(index, change) {
-    cart[index].quantity += change;
-    if (cart[index].quantity <= 0) {
+    const item = cart[index];
+    const product = products.find(p => p.id === item.productId);
+    
+    if (change > 0 && product && item.quantity >= product.stock) {
+        alert('Quantità massima disponibile raggiunta');
+        return;
+    }
+    
+    item.quantity += change;
+    if (item.quantity <= 0) {
         cart.splice(index, 1);
     }
+    
     localStorage.setItem('cart', JSON.stringify(cart));
     updateCartUI();
 }
@@ -277,180 +385,186 @@ function removeFromCart(index) {
     updateCartUI();
 }
 
-// Autenticazione
+// Funzioni autenticazione
 function handleLogin() {
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
     
     auth.signInWithEmailAndPassword(email, password)
-        .then(() => {
-            alert('Accesso effettuato con successo!');
+        .then(userCredential => {
             showSection('home');
+            alert('Login effettuato con successo!');
         })
         .catch(error => {
-            alert('Errore: ' + error.message);
+            alert('Errore durante il login: ' + error.message);
         });
 }
 
 function handleRegister() {
-    const name = document.getElementById('register-name').value;
     const email = document.getElementById('register-email').value;
+    const password = document.getElementById('register-password').value;
+    const confirmPassword = document.getElementById('register-confirm-password').value;
+    const name = document.getElementById('register-name').value;
     const phone = document.getElementById('register-phone').value;
     const address = document.getElementById('register-address').value;
-    const password = document.getElementById('register-password').value;
+    
+    if (password !== confirmPassword) {
+        alert('Le password non coincidono');
+        return;
+    }
     
     auth.createUserWithEmailAndPassword(email, password)
-        .then((userCredential) => {
-            // Salva profilo utente
-            return db.ref(`users/${userCredential.user.uid}`).set({
-                name,
-                email,
-                phone,
-                address,
-                createdAt: firebase.database.ServerValue.TIMESTAMP
+        .then(userCredential => {
+            // Salva informazioni aggiuntive dell'utente
+            return db.collection('users').doc(userCredential.user.uid).set({
+                name: name,
+                email: email,
+                phone: phone,
+                address: address,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
         })
         .then(() => {
-            alert('Registrazione completata!');
             showSection('home');
+            alert('Registrazione completata con successo!');
         })
         .catch(error => {
-            alert('Errore: ' + error.message);
+            alert('Errore durante la registrazione: ' + error.message);
         });
 }
 
 function handleLogout() {
     auth.signOut().then(() => {
-        cart = [];
-        localStorage.removeItem('cart');
-        updateCartUI();
         showSection('home');
-        alert('Disconnesso con successo!');
+        alert('Logout effettuato con successo!');
+    }).catch(error => {
+        alert('Errore durante il logout: ' + error.message);
     });
 }
 
 function loadUserProfile() {
     if (!currentUser) return;
     
-    db.ref(`users/${currentUser.uid}`).once('value')
-        .then(snapshot => {
-            const userData = snapshot.val();
-            if (userData) {
-                document.getElementById('profile-details').innerHTML = `
-                    <p><strong>Nome:</strong> ${userData.name}</p>
-                    <p><strong>Email:</strong> ${userData.email}</p>
-                    <p><strong>Telefono:</strong> ${userData.phone || 'Non specificato'}</p>
-                    <p><strong>Indirizzo:</strong> ${userData.address || 'Non specificato'}</p>
-                `;
-            }
-        });
-    
-    // Carica ordini utente
-    db.ref('orders').orderByChild('userId').equalTo(currentUser.uid)
-        .on('value', snapshot => {
-            const orders = [];
-            snapshot.forEach(child => {
-                orders.push({
-                    id: child.key,
-                    ...child.val()
-                });
-            });
+    db.collection('users').doc(currentUser.uid).get().then(doc => {
+        if (doc.exists) {
+            const userData = doc.data();
             
-            const ordersList = document.getElementById('orders-list');
-            if (orders.length === 0) {
-                ordersList.innerHTML = '<p>Nessun ordine trovato</p>';
-            } else {
-                ordersList.innerHTML = orders.map(order => {
-                    const statusLabels = {
-                        'pending': 'In attesa',
-                        'confirmed': 'Confermato',
-                        'ready': 'Pronto per il ritiro',
-                        'completed': 'Completato',
-                        'cancelled': 'Annullato'
-                    };
-                    
-                    const itemsList = order.items ? order.items.map(item => `
-                        <div class="order-product">
-                            <span class="product-name">${item.name}</span>
-                            <span class="product-details">Quantità: ${item.quantity} ${item.unit || 'pz'} - €${(item.price * item.quantity).toFixed(2)}</span>
-                        </div>
-                    `).join('') : '<p>Nessun prodotto trovato</p>';
-                    
-                    return `
-                        <div class="order-item">
-                            <div class="order-header">
-                                <h4>Ordine #${order.id.substring(0, 8)}</h4>
-                                <span class="order-status status-${order.status}">${statusLabels[order.status] || order.status}</span>
-                            </div>
-                            <div class="order-info">
-                                <p><strong>Data ordine:</strong> ${new Date(order.createdAt).toLocaleDateString()}</p>
-                                <p><strong>Data ritiro:</strong> ${order.pickupDate}</p>
-                                ${order.notes ? `<p><strong>Note:</strong> ${order.notes}</p>` : ''}
-                            </div>
-                            <div class="order-products">
-                                <h5>Prodotti ordinati:</h5>
-                                ${itemsList}
-                            </div>
-                            <div class="order-total">
-                                <strong>Totale: €${order.totalAmount.toFixed(2)}</strong>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
+            // Popola i campi del profilo
+            const fields = ['profile-name', 'profile-email', 'profile-phone', 'profile-address'];
+            fields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field) {
+                    const key = fieldId.replace('profile-', '');
+                    field.value = userData[key] || '';
+                }
+            });
+        }
+    });
+    
+    // Carica cronologia ordini
+    db.collection('orders')
+        .where('userId', '==', currentUser.uid)
+        .orderBy('createdAt', 'desc')
+        .get()
+        .then(snapshot => {
+            const ordersContainer = document.getElementById('orders-history');
+            if (!ordersContainer) return;
+            
+            if (snapshot.empty) {
+                ordersContainer.innerHTML = '<p>Nessun ordine trovato</p>';
+                return;
             }
+            
+            ordersContainer.innerHTML = snapshot.docs.map(doc => {
+                const order = doc.data();
+                const date = order.createdAt ? order.createdAt.toDate().toLocaleDateString() : 'Data non disponibile';
+                
+                return `
+                    <div class="order-item">
+                        <div class="order-header">
+                            <h4>Ordine #${doc.id.substring(0, 8)}</h4>
+                            <span class="order-date">${date}</span>
+                            <span class="order-status status-${order.status}">${order.status}</span>
+                        </div>
+                        <div class="order-total">Totale: €${order.total.toFixed(2)}</div>
+                        <div class="order-items">
+                            ${order.items.map(item => `
+                                <div class="order-product">
+                                    <span>${item.name} x${item.quantity}</span>
+                                    <span>€${(item.price * item.quantity).toFixed(2)}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        })
+        .catch(error => {
+            console.error('Errore nel caricamento degli ordini:', error);
         });
 }
 
-// Checkout
+// Funzioni checkout
 function showCheckoutModal() {
     if (cart.length === 0) {
-        alert('Il carrello è vuoto!');
+        alert('Il carrello è vuoto');
         return;
     }
     
     if (!currentUser) {
-        alert('Devi effettuare l\'accesso per completare l\'ordine');
+        alert('Devi effettuare il login per procedere con l\'ordine');
         showSection('login');
         return;
     }
     
-    // Imposta data minima (domani)
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    document.getElementById('pickup-date').min = tomorrow.toISOString().split('T')[0];
-    
-    // Mostra riepilogo
-    const checkoutItems = document.getElementById('checkout-items');
-    checkoutItems.innerHTML = cart.map(item => `
-        <div class="checkout-item">
-            <span>${item.name} x ${item.quantity} ${item.unit}</span>
-            <span>€${(item.price * item.quantity).toFixed(2)}</span>
-        </div>
-    `).join('');
-    
-    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    document.getElementById('checkout-total').textContent = total.toFixed(2);
-    
-    document.getElementById('checkout-modal').style.display = 'block';
+    const modal = document.getElementById('checkout-modal');
+    if (modal) {
+        modal.style.display = 'block';
+        
+        // Popola il riepilogo dell'ordine
+        const orderSummary = document.getElementById('order-summary');
+        if (orderSummary) {
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            orderSummary.innerHTML = `
+                <h3>Riepilogo Ordine</h3>
+                ${cart.map(item => `
+                    <div class="order-item-summary">
+                        <span>${item.name} x${item.quantity}</span>
+                        <span>€${(item.price * item.quantity).toFixed(2)}</span>
+                    </div>
+                `).join('')}
+                <div class="order-total-summary">
+                    <strong>Totale: €${total.toFixed(2)}</strong>
+                </div>
+            `;
+        }
+    }
 }
 
 function handleCheckout(e) {
     e.preventDefault();
     
-    const pickupDate = document.getElementById('pickup-date').value;
-    const notes = document.getElementById('order-notes').value;
+    const deliveryAddress = document.getElementById('delivery-address').value;
+    const deliveryNotes = document.getElementById('delivery-notes').value;
     
-    const order = {
+    if (!deliveryAddress.trim()) {
+        alert('Inserisci l\'indirizzo di consegna');
+        return;
+    }
+    
+    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    
+    const orderData = {
         userId: currentUser.uid,
         items: cart,
-        totalAmount: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
-        pickupDate,
-        notes,
+        total: total,
+        deliveryAddress: deliveryAddress,
+        deliveryNotes: deliveryNotes,
         status: 'pending',
-        createdAt: firebase.database.ServerValue.TIMESTAMP
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
     };
     
-    db.ref('orders').push(order)
+    db.collection('orders').add(orderData)
         .then(() => {
             alert('Ordine inviato con successo!');
             cart = [];
@@ -465,11 +579,24 @@ function handleCheckout(e) {
 }
 
 function closeModal() {
-    document.getElementById('checkout-modal').style.display = 'none';
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+        modal.style.display = 'none';
+    });
 }
 
-// Utility functions
+// Funzioni di navigazione
+function closeNavbarCollapse() {
+    const navbarCollapse = document.querySelector('.navbar-collapse');
+    if (navbarCollapse && navbarCollapse.classList.contains('show')) {
+        navbarCollapse.classList.remove('show');
+    }
+}
+
 function showSection(sectionId, addToHistory = true) {
+    // Chiudi il menu mobile se aperto
+    closeNavbarCollapse();
+    
     // Rimuove la classe active da tutte le sezioni
     document.querySelectorAll('.section').forEach(section => {
         section.classList.remove('active');
@@ -479,6 +606,14 @@ function showSection(sectionId, addToHistory = true) {
     const targetSection = document.getElementById(sectionId);
     if (targetSection) {
         targetSection.classList.add('active');
+        
+        // Aggiorna gli stati attivi nella navbar
+        document.querySelectorAll('.navbar-nav .nav-link').forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href') === `#${sectionId}`) {
+                link.classList.add('active');
+            }
+        });
         
         // Aggiunge alla cronologia del browser se richiesto
         if (addToHistory) {
@@ -518,17 +653,25 @@ function getPageTitle(sectionId) {
 }
 
 function updateUI() {
-    const loginLink = document.getElementById('login-link');
-    const profileLink = document.getElementById('profile-link');
-    const logoutBtn = document.getElementById('logout-btn');
+    const loginLink = document.querySelector('a[href="#login"]');
+    const profileLink = document.querySelector('a[href="#profile"]');
+    const logoutBtn = document.querySelector('a[href="#logout"]');
     
     if (currentUser) {
-        loginLink.style.display = 'none';
-        profileLink.style.display = 'inline';
-        logoutBtn.style.display = 'inline';
+        if (loginLink) loginLink.style.display = 'none';
+        if (profileLink) profileLink.style.display = 'inline';
+        if (logoutBtn) logoutBtn.style.display = 'inline';
     } else {
-        loginLink.style.display = 'inline';
-        profileLink.style.display = 'none';
-        logoutBtn.style.display = 'none';
+        if (loginLink) loginLink.style.display = 'inline';
+        if (profileLink) profileLink.style.display = 'none';
+        if (logoutBtn) logoutBtn.style.display = 'none';
+    }
+    
+    // Aggiorna il badge del carrello se presente
+    const cartBadge = document.querySelector('.cart-badge');
+    if (cartBadge) {
+        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+        cartBadge.textContent = totalItems;
+        cartBadge.style.display = totalItems > 0 ? 'inline' : 'none';
     }
 }
