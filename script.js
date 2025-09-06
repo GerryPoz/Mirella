@@ -189,17 +189,27 @@ function showUserMenu(event) {
     // Crea il menu dropdown
     const dropdown = document.createElement('div');
     dropdown.className = 'user-dropdown';
-    dropdown.innerHTML = `
-        <div class="user-menu-item" onclick="showUserProfile()">
-            <i class="fas fa-user"></i> Profilo
-        </div>
-        <div class="user-menu-item" onclick="showUserOrders()">
-            <i class="fas fa-shopping-bag"></i> I miei ordini
-        </div>
-        <div class="user-menu-item" onclick="handleLogout()">
-            <i class="fas fa-sign-out-alt"></i> Disconnetti
-        </div>
-    `;
+    
+    // Crea gli elementi del menu
+    const profileItem = document.createElement('div');
+    profileItem.className = 'user-menu-item';
+    profileItem.innerHTML = '<i class="fas fa-user"></i> Profilo';
+    profileItem.addEventListener('click', showUserProfile);
+    
+    const ordersItem = document.createElement('div');
+    ordersItem.className = 'user-menu-item';
+    ordersItem.innerHTML = '<i class="fas fa-shopping-bag"></i> I miei ordini';
+    ordersItem.addEventListener('click', showUserOrders);
+    
+    const logoutItem = document.createElement('div');
+    logoutItem.className = 'user-menu-item';
+    logoutItem.innerHTML = '<i class="fas fa-sign-out-alt"></i> Disconnetti';
+    logoutItem.addEventListener('click', handleLogout);
+    
+    // Aggiungi gli elementi al dropdown
+    dropdown.appendChild(profileItem);
+    dropdown.appendChild(ordersItem);
+    dropdown.appendChild(logoutItem);
 
     // Posiziona il menu
     const authLink = event.target.closest('#auth-link');
