@@ -3,120 +3,616 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Azienda Agricola Mirella</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Azienda Agricola Mirella - Prodotti Freschi e Genuini</title>
     <link rel="icon" href="data:,">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+
+        /* Header e Navigation */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .logo img {
+            width: 40px;
+            height: 40px;
+            margin-right: 10px;
+            border-radius: 50%;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-item {
+            position: relative;
+        }
+
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+
+        .cart-badge {
+            background: #ff4757;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 0.8rem;
+            position: absolute;
+            top: -5px;
+            right: -5px;
+        }
+
+        .mobile-toggle {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+        }
+
+        .mobile-toggle span {
+            width: 25px;
+            height: 3px;
+            background: white;
+            margin: 3px 0;
+            transition: 0.3s;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-top: 80px;
+            min-height: calc(100vh - 80px);
+        }
+
+        .section {
+            display: none;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('Casale1.jpg');
+            background-size: cover;
+            background-position: center;
+            height: 60vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+            border-radius: 15px;
+            margin-bottom: 3rem;
+        }
+
+        .hero-content h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .hero-content p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+        }
+
+        .cta-button {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        /* Cards */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+        .card-image {
+            width: 100%;
+            height: 200px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .card-image .placeholder {
+            color: #6c757d;
+            font-size: 3rem;
+        }
+
+        .card h3 {
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .card p {
+            color: #6c757d;
+            margin-bottom: 1rem;
+        }
+
+        .price {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #27ae60;
+            margin-bottom: 1rem;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Auth Forms */
+        .auth-container {
+            max-width: 400px;
+            margin: 2rem auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        /* Cart */
+        .cart-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .quantity-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .cart-total {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 2rem;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .close {
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #999;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-menu {
+                position: fixed;
+                left: -100%;
+                top: 70px;
+                flex-direction: column;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                width: 100%;
+                text-align: center;
+                transition: 0.3s;
+                padding: 2rem 0;
+            }
+
+            .nav-menu.active {
+                left: 0;
+            }
+
+            .mobile-toggle {
+                display: flex;
+            }
+
+            .hero-content h1 {
+                font-size: 2rem;
+            }
+
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 3px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 2px;
+        }
+
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .filters input, .filters select {
+            padding: 0.75rem;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 1rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            color: #dee2e6;
+        }
+    </style>
 </head>
 <body>
-    <header class="navbar">
-        <div class="navbar-brand">
-            <img src="ellisse1.png" alt="Logo" class="brand-icon">
-            <span class="brand-text">Azienda Agricola Mirella</span>
-        </div>
-        
-        <div class="nav-links-modern">
-            <a href="#home" class="nav-item active" id="home-link">Home</a>
-            <a href="#products" class="nav-item" id="products-link">Prodotti</a>
-            <a href="#cart" class="nav-item cart-item" id="cart-link">
-                <i class="fas fa-shopping-cart"></i>
-                <span class="cart-badge">0</span>
-            </a>
-            <a href="#login" class="nav-item" id="login-link">Accedi</a>
-            <a href="#profile" class="nav-item" id="profile-link" style="display:none">Profilo</a>
-            <a href="#logout" class="nav-item" id="logout-btn" style="display:none">Esci</a>
-        </div>
-        
-        <div class="mobile-menu-toggle">
-            <span></span>
-            <span></span>
-            <span></span>
-        </div>
+    <header class="header">
+        <nav class="nav-container">
+            <div class="logo">
+                <img src="ellisse1.png" alt="Logo">
+                <span>Azienda Agricola Mirella</span>
+            </div>
+            
+            <ul class="nav-menu" id="nav-menu">
+                <li class="nav-item">
+                    <a href="#home" class="nav-link active">
+                        <i class="fas fa-home"></i>
+                        Home
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#products" class="nav-link">
+                        <i class="fas fa-leaf"></i>
+                        Prodotti
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#cart" class="nav-link">
+                        <i class="fas fa-shopping-cart"></i>
+                        Carrello
+                        <span class="cart-badge" id="cart-badge">0</span>
+                    </a>
+                </li>
+                <li class="nav-item" id="login-nav">
+                    <a href="#login" class="nav-link">
+                        <i class="fas fa-user"></i>
+                        Accedi
+                    </a>
+                </li>
+                <li class="nav-item" id="profile-nav" style="display: none;">
+                    <a href="#profile" class="nav-link">
+                        <i class="fas fa-user-circle"></i>
+                        Profilo
+                    </a>
+                </li>
+                <li class="nav-item" id="logout-nav" style="display: none;">
+                    <a href="#logout" class="nav-link">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Esci
+                    </a>
+                </li>
+            </ul>
+            
+            <div class="mobile-toggle" id="mobile-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </nav>
     </header>
 
-    <main>
+    <main class="main-content">
         <!-- Home Section -->
         <section id="home" class="section active">
             <div class="hero">
-                <h1>Benvenuti all'Azienda Agricola Mirella</h1>
-                <p>Prodotti freschi e genuini direttamente dalla nostra terra</p>
+                <div class="hero-content">
+                    <h1>Benvenuti all'Azienda Agricola Mirella</h1>
+                    <p>Prodotti freschi e genuini direttamente dalla nostra terra</p>
+                    <a href="#products" class="cta-button">Scopri i Nostri Prodotti</a>
+                </div>
             </div>
             
-            <div class="categories-section">
-                <h2>Le Nostre Categorie</h2>
-                <div id="categories-grid" class="categories-grid"></div>
-            </div>
+            <h2 class="section-title">Le Nostre Categorie</h2>
+            <div id="categories-grid" class="cards-grid"></div>
             
-            <div class="featured-section">
-                <h2>Prodotti in Evidenza</h2>
-                <div id="featured-products-grid" class="products-grid"></div>
-            </div>
+            <h2 class="section-title">Prodotti in Evidenza</h2>
+            <div id="featured-products" class="cards-grid"></div>
         </section>
 
         <!-- Products Section -->
         <section id="products" class="section">
-            <h2>I Nostri Prodotti</h2>
+            <h2 class="section-title">I Nostri Prodotti</h2>
             
             <div class="filters">
-                <input type="text" id="search-input" placeholder="Cerca prodotti...">
+                <input type="text" id="search-input" placeholder="🔍 Cerca prodotti...">
                 <select id="category-filter">
-                    <option value="">Tutte le categorie</option>
+                    <option value="">📂 Tutte le categorie</option>
                 </select>
             </div>
             
-            <div id="products-grid" class="products-grid"></div>
+            <div id="products-grid" class="cards-grid"></div>
         </section>
 
         <!-- Cart Section -->
         <section id="cart" class="section">
-            <h2>Carrello</h2>
-            <div id="cart-items"></div>
-            <div class="cart-total">
+            <h2 class="section-title">Il Tuo Carrello</h2>
+            
+            <div id="cart-items">
+                <div class="empty-state">
+                    <i class="fas fa-shopping-cart"></i>
+                    <h3>Il carrello è vuoto</h3>
+                    <p>Aggiungi alcuni prodotti per iniziare!</p>
+                </div>
+            </div>
+            
+            <div class="cart-total" id="cart-total-section" style="display: none;">
                 <h3>Totale: €<span id="cart-total">0.00</span></h3>
-                <button id="checkout-btn" class="btn-primary">Procedi all'Ordine</button>
+                <button id="checkout-btn" class="cta-button">Procedi all'Ordine</button>
             </div>
         </section>
 
         <!-- Login Section -->
         <section id="login" class="section">
             <div class="auth-container">
-                <div class="auth-form" id="login-form">
-                    <h2>Accedi</h2>
-                    <input type="email" id="login-email" placeholder="Email" required>
-                    <input type="password" id="login-password" placeholder="Password" required>
-                    <input type="password" id="register-confirm-password" placeholder="Conferma Password" required>
-                    <button id="login-submit" class="btn-primary">Accedi</button>
-                    <p>Non hai un account? <a href="#" id="show-register">Registrati</a></p>
+                <div id="login-form">
+                    <h2 style="text-align: center; margin-bottom: 2rem; color: #2c3e50;">Accedi al tuo Account</h2>
+                    
+                    <div class="form-group">
+                        <input type="email" id="login-email" placeholder="📧 Email" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <input type="password" id="login-password" placeholder="🔒 Password" required>
+                    </div>
+                    
+                    <button id="login-submit" class="btn" style="margin-bottom: 1rem;">Accedi</button>
+                    
+                    <p style="text-align: center;">
+                        Non hai un account? 
+                        <a href="#" id="show-register" style="color: #667eea; text-decoration: none;">Registrati qui</a>
+                    </p>
                 </div>
                 
-                <div class="auth-form" id="register-form" style="display:none">
-                    <h2>Registrati</h2>
-                    <input type="text" id="register-name" placeholder="Nome completo" required>
-                    <input type="email" id="register-email" placeholder="Email" required>
-                    <input type="tel" id="register-phone" placeholder="Telefono" required>
-                    <input type="text" id="register-address" placeholder="Indirizzo" required>
-                    <input type="password" id="register-password" placeholder="Password" required>
-                    <button id="register-submit" class="btn-primary">Registrati</button>
-                    <p>Hai già un account? <a href="#" id="show-login">Accedi</a></p>
+                <div id="register-form" style="display: none;">
+                    <h2 style="text-align: center; margin-bottom: 2rem; color: #2c3e50;">Crea un Account</h2>
+                    
+                    <div class="form-group">
+                        <input type="text" id="register-name" placeholder="👤 Nome completo" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <input type="email" id="register-email" placeholder="📧 Email" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <input type="tel" id="register-phone" placeholder="📱 Telefono">
+                    </div>
+                    
+                    <div class="form-group">
+                        <input type="text" id="register-address" placeholder="🏠 Indirizzo">
+                    </div>
+                    
+                    <div class="form-group">
+                        <input type="password" id="register-password" placeholder="🔒 Password" required>
+                    </div>
+                    
+                    <button id="register-submit" class="btn" style="margin-bottom: 1rem;">Registrati</button>
+                    
+                    <p style="text-align: center;">
+                        Hai già un account? 
+                        <a href="#" id="show-login" style="color: #667eea; text-decoration: none;">Accedi qui</a>
+                    </p>
                 </div>
             </div>
         </section>
 
         <!-- Profile Section -->
         <section id="profile" class="section">
-            <h2>Il Mio Profilo</h2>
-            <div id="profile-info">
-                <div class="profile-form">
-                    <h3>Informazioni Personali</h3>
+            <h2 class="section-title">Il Mio Profilo</h2>
+            
+            <div class="auth-container">
+                <h3 style="color: #2c3e50; margin-bottom: 1rem;">Informazioni Personali</h3>
+                
+                <div class="form-group">
                     <input type="text" id="profile-name" placeholder="Nome completo" readonly>
+                </div>
+                
+                <div class="form-group">
                     <input type="email" id="profile-email" placeholder="Email" readonly>
+                </div>
+                
+                <div class="form-group">
                     <input type="tel" id="profile-phone" placeholder="Telefono" readonly>
+                </div>
+                
+                <div class="form-group">
                     <input type="text" id="profile-address" placeholder="Indirizzo" readonly>
                 </div>
             </div>
             
-            <div class="profile-section">
-                <h3>I Miei Ordini</h3>
+            <div style="margin-top: 2rem;">
+                <h3 class="section-title">I Miei Ordini</h3>
                 <div id="orders-history"></div>
             </div>
         </section>
@@ -126,27 +622,33 @@
     <div id="checkout-modal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
-            <h2>Completa l'Ordine</h2>
+            <h2 style="margin-bottom: 2rem; color: #2c3e50;">Completa l'Ordine</h2>
+            
             <form id="checkout-form">
                 <div class="form-group">
-                    <label>Indirizzo di Consegna:</label>
-                    <textarea id="delivery-address" placeholder="Inserisci l'indirizzo di consegna" required></textarea>
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Indirizzo di Consegna:</label>
+                    <textarea id="delivery-address" placeholder="Inserisci l'indirizzo di consegna" required 
+                              style="width: 100%; padding: 0.75rem; border: 2px solid #e9ecef; border-radius: 10px; min-height: 80px; resize: vertical;"></textarea>
                 </div>
+                
                 <div class="form-group">
-                    <label>Note aggiuntive:</label>
-                    <textarea id="delivery-notes" placeholder="Note per l'ordine (opzionale)"></textarea>
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Note aggiuntive:</label>
+                    <textarea id="delivery-notes" placeholder="Note per l'ordine (opzionale)" 
+                              style="width: 100%; padding: 0.75rem; border: 2px solid #e9ecef; border-radius: 10px; min-height: 60px; resize: vertical;"></textarea>
                 </div>
-                <div id="order-summary"></div>
-                <button type="submit" class="btn-primary">Conferma Ordine</button>
+                
+                <div id="order-summary" style="background: #f8f9fa; padding: 1rem; border-radius: 10px; margin: 1rem 0;"></div>
+                
+                <button type="submit" class="cta-button" style="width: 100%;">Conferma Ordine</button>
             </form>
         </div>
     </div>
 
+    <!-- Firebase Scripts -->
     <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-storage-compat.js"></script>
-
     <script src="firebase-config.js"></script>
     <script src="script.js"></script>
 </body>
