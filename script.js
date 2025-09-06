@@ -29,8 +29,8 @@ function initializeApp() {
 }
 
 function setupEventListeners() {
-    // Navigation - aggiornato per la nuova struttura navbar
-    document.querySelectorAll('.navbar-nav .nav-link').forEach(link => {
+    // Navigation - corretto per la struttura HTML attuale
+    document.querySelectorAll('.nav-links-modern .nav-item').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             const section = e.target.getAttribute('href').substring(1);
@@ -103,12 +103,12 @@ function setupEventListeners() {
     });
     
     // Aggiungi gestione per il menu mobile
-    const navbarToggler = document.querySelector('.navbar-toggler');
-    const navbarCollapse = document.querySelector('.navbar-collapse');
+    const mobileToggle = document.querySelector('.mobile-menu-toggle');
+    const navLinks = document.querySelector('.nav-links-modern');
     
-    if (navbarToggler && navbarCollapse) {
-        navbarToggler.addEventListener('click', () => {
-            navbarCollapse.classList.toggle('show');
+    if (mobileToggle && navLinks) {
+        mobileToggle.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
         });
     }
 }
@@ -612,7 +612,10 @@ function closeNavbarCollapse() {
 
 function showSection(sectionId, addToHistory = true) {
     // Chiudi il menu mobile se aperto
-    closeNavbarCollapse();
+    const navLinks = document.querySelector('.nav-links-modern');
+    if (navLinks && navLinks.classList.contains('active')) {
+        navLinks.classList.remove('active');
+    }
     
     // Rimuove la classe active da tutte le sezioni
     document.querySelectorAll('.section').forEach(section => {
@@ -625,7 +628,7 @@ function showSection(sectionId, addToHistory = true) {
         targetSection.classList.add('active');
         
         // Aggiorna gli stati attivi nella navbar
-        document.querySelectorAll('.navbar-nav .nav-link').forEach(link => {
+        document.querySelectorAll('.nav-links-modern .nav-item').forEach(link => {
             link.classList.remove('active');
             if (link.getAttribute('href') === `#${sectionId}`) {
                 link.classList.add('active');
