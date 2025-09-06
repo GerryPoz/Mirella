@@ -52,8 +52,9 @@ function setupEventListeners() {
         authLink.addEventListener('click', (e) => {
             e.preventDefault();
             if (currentUser) {
-                // User is logged in, handle logout
-                handleLogout();
+                // User is logged in, show user profile or create a dropdown menu
+                // Per ora mostriamo una sezione profilo utente
+                showUserMenu(e);
             } else {
                 // User is not logged in, show login section
                 showSection('login');
@@ -174,6 +175,72 @@ function setupEventListeners() {
     if (checkoutButton) {
         checkoutButton.addEventListener('click', handleCheckout);
     }
+}
+
+// Nuova funzione per gestire il menu utente
+function showUserMenu(event) {
+    // Rimuovi eventuali menu esistenti
+    const existingMenu = document.querySelector('.user-dropdown');
+    if (existingMenu) {
+        existingMenu.remove();
+        return;
+    }
+
+    // Crea il menu dropdown
+    const dropdown = document.createElement('div');
+    dropdown.className = 'user-dropdown';
+    dropdown.innerHTML = `
+        <div class="user-menu-item" onclick="showUserProfile()">
+            <i class="fas fa-user"></i> Profilo
+        </div>
+        <div class="user-menu-item" onclick="showUserOrders()">
+            <i class="fas fa-shopping-bag"></i> I miei ordini
+        </div>
+        <div class="user-menu-item" onclick="handleLogout()">
+            <i class="fas fa-sign-out-alt"></i> Disconnetti
+        </div>
+    `;
+
+    // Posiziona il menu
+    const authLink = event.target.closest('#auth-link');
+    const rect = authLink.getBoundingClientRect();
+    dropdown.style.position = 'fixed';
+    dropdown.style.top = (rect.bottom + 5) + 'px';
+    dropdown.style.right = '20px';
+    dropdown.style.zIndex = '1000';
+
+    document.body.appendChild(dropdown);
+
+    // Chiudi il menu se si clicca altrove
+    setTimeout(() => {
+        document.addEventListener('click', function closeMenu(e) {
+            if (!dropdown.contains(e.target) && !authLink.contains(e.target)) {
+                dropdown.remove();
+                document.removeEventListener('click', closeMenu);
+            }
+        });
+    }, 100);
+}
+
+// Funzioni per le opzioni del menu utente
+function showUserProfile() {
+    // Chiudi il menu
+    const dropdown = document.querySelector('.user-dropdown');
+    if (dropdown) dropdown.remove();
+    
+    // Mostra la sezione profilo (se esiste) o crea una sezione temporanea
+    showSection('profile');
+    // Se non hai una sezione profilo, puoi mostrare i dati utente in un modal
+    showMessage(`Benvenuto ${currentUser.displayName || currentUser.email}!`, 'info');
+}
+
+function showUserOrders() {
+    // Chiudi il menu
+    const dropdown = document.querySelector('.user-dropdown');
+    if (dropdown) dropdown.remove();
+    
+    // Mostra gli ordini dell'utente
+    showMessage('Funzionalità ordini in sviluppo', 'info');
 }
 
 function loadData() {
