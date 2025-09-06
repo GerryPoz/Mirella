@@ -684,6 +684,34 @@ body {
     color: #ccc;
 }
 
+.user-dropdown {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    min-width: 180px;
+    overflow: hidden;
+}
+
+.user-menu-item {
+    padding: 12px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.2s;
+    font-size: 14px;
+}
+
+.user-menu-item:hover {
+    background-color: #f5f5f5;
+}
+
+.user-menu-item i {
+    width: 16px;
+    text-align: center;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .nav-menu {
