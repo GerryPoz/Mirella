@@ -3,90 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Azienda Agricola - Home</title>
+    <title>Azienda Agricola Mirella</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:,">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="icon" href="data:,"> <!-- Previene l'errore favicon 404 -->
 </head>
 <body>
-    <header>
-        <nav class="navbar-modern">
-            <div class="nav-brand-modern">
-                <div class="brand-icon">🌱</div>
-                <div class="brand-text">
-                    <h1>Mirella Agricola</h1>
-                    <span class="brand-tagline">Freschezza Naturale</span>
-                </div>
-            </div>
-            <div class="nav-links-modern">
-                <a href="#home" class="nav-item"><span class="nav-icon">🏠</span>Home</a>
-                <a href="#products" class="nav-item"><span class="nav-icon">🛒</span>Prodotti</a>
-                <a href="#cart" id="cart-link" class="nav-item cart-item">
-                    <span class="nav-icon">🛍️</span>
-                    Carrello 
-                    <span class="cart-badge" id="cart-count">0</span>
-                </a>
-                <a href="#login" id="login-link" class="nav-item"><span class="nav-icon">👤</span>Accedi</a>
-                <a href="#profile" id="profile-link" class="nav-item" style="display:none"><span class="nav-icon">👤</span>Profilo</a>
-                <button id="logout-btn" class="logout-btn-modern" style="display:none">Esci</button>
-            </div>
-            <div class="mobile-menu-toggle">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-        </nav>
+    <header class="navbar">
+        <div class="navbar-brand">
+            <img src="ellisse1.png" alt="Logo" class="brand-icon">
+            <span class="brand-text">Azienda Agricola Mirella</span>
+        </div>
+        
+        <div class="nav-links-modern">
+            <a href="#home" class="nav-item active" id="home-link">Home</a>
+            <a href="#products" class="nav-item" id="products-link">Prodotti</a>
+            <a href="#cart" class="nav-item cart-item" id="cart-link">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="cart-badge">0</span>
+            </a>
+            <a href="#login" class="nav-item" id="login-link">Accedi</a>
+            <a href="#profile" class="nav-item" id="profile-link" style="display:none">Profilo</a>
+            <a href="#logout" class="nav-item" id="logout-btn" style="display:none">Esci</a>
+        </div>
+        
+        <div class="mobile-menu-toggle">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
     </header>
 
     <main>
         <!-- Home Section -->
         <section id="home" class="section active">
-            <div class="hero-modern">
-                <div class="hero-content">
-                    <div class="hero-icon">🌱</div>
-                    <h2 class="hero-title">Prodotti Agricoli Freschi</h2>
-                    <p class="hero-subtitle">Direttamente dal nostro campo alla tua tavola</p>
-                    <div class="hero-features">
-                        <span class="feature-badge">🌿 100% Naturale</span>
-                        <span class="feature-badge">🚚 Consegna Fresca</span>
-                        <span class="feature-badge">❤️ Km Zero</span>
-                    </div>
-                    <button class="cta-button" onclick="showSection('products')">Scopri i Prodotti</button>
-                </div>
-                <div class="hero-decoration">
-                    <div class="floating-element">🍅</div>
-                    <div class="floating-element">🥕</div>
-                    <div class="floating-element">🌽</div>
-                    <div class="floating-element">🥬</div>
-                </div>
+            <div class="hero">
+                <h1>Benvenuti all'Azienda Agricola Mirella</h1>
+                <p>Prodotti freschi e genuini direttamente dalla nostra terra</p>
             </div>
             
-            <div class="categories-modern">
-                <div class="section-header">
-                    <h3 class="section-title">🎯 Esplora le Categorie</h3>
-                    <p class="section-subtitle">Trova quello che cerchi nella nostra selezione</p>
-                </div>
-                <div id="categories-grid" class="grid-modern"></div>
+            <div class="categories-section">
+                <h2>Le Nostre Categorie</h2>
+                <div id="categories-grid" class="categories-grid"></div>
             </div>
             
-            <div class="featured-products-modern">
-                <div class="section-header">
-                    <h3 class="section-title">⭐ Prodotti in Evidenza</h3>
-                    <p class="section-subtitle">I nostri prodotti più amati dai clienti</p>
-                </div>
-                <div id="featured-grid" class="grid-modern"></div>
+            <div class="featured-section">
+                <h2>Prodotti in Evidenza</h2>
+                <div id="featured-products-grid" class="products-grid"></div>
             </div>
         </section>
 
         <!-- Products Section -->
         <section id="products" class="section">
+            <h2>I Nostri Prodotti</h2>
+            
             <div class="filters">
+                <input type="text" id="search-input" placeholder="Cerca prodotti...">
                 <select id="category-filter">
                     <option value="">Tutte le categorie</option>
                 </select>
-                <input type="text" id="search-input" placeholder="Cerca prodotti...">
             </div>
-            <div id="products-grid" class="grid"></div>
+            
+            <div id="products-grid" class="products-grid"></div>
         </section>
 
         <!-- Cart Section -->
@@ -106,6 +84,7 @@
                     <h2>Accedi</h2>
                     <input type="email" id="login-email" placeholder="Email" required>
                     <input type="password" id="login-password" placeholder="Password" required>
+                    <input type="password" id="register-confirm-password" placeholder="Conferma Password" required>
                     <button id="login-submit" class="btn-primary">Accedi</button>
                     <p>Non hai un account? <a href="#" id="show-register">Registrati</a></p>
                 </div>
@@ -126,11 +105,19 @@
         <!-- Profile Section -->
         <section id="profile" class="section">
             <h2>Il Mio Profilo</h2>
-            <div id="profile-info"></div>
+            <div id="profile-info">
+                <div class="profile-form">
+                    <h3>Informazioni Personali</h3>
+                    <input type="text" id="profile-name" placeholder="Nome completo" readonly>
+                    <input type="email" id="profile-email" placeholder="Email" readonly>
+                    <input type="tel" id="profile-phone" placeholder="Telefono" readonly>
+                    <input type="text" id="profile-address" placeholder="Indirizzo" readonly>
+                </div>
+            </div>
             
             <div class="profile-section">
                 <h3>I Miei Ordini</h3>
-                <div id="orders-list"></div>
+                <div id="orders-history"></div>
             </div>
         </section>
     </main>
@@ -142,18 +129,14 @@
             <h2>Completa l'Ordine</h2>
             <form id="checkout-form">
                 <div class="form-group">
-                    <label>Data di Ritiro:</label>
-                    <input type="date" id="pickup-date" required>
+                    <label>Indirizzo di Consegna:</label>
+                    <textarea id="delivery-address" placeholder="Inserisci l'indirizzo di consegna" required></textarea>
                 </div>
                 <div class="form-group">
                     <label>Note aggiuntive:</label>
-                    <textarea id="order-notes" placeholder="Note per l'ordine (opzionale)"></textarea>
+                    <textarea id="delivery-notes" placeholder="Note per l'ordine (opzionale)"></textarea>
                 </div>
-                <div class="order-summary">
-                    <h3>Riepilogo Ordine</h3>
-                    <div id="checkout-items"></div>
-                    <div class="total">Totale: €<span id="checkout-total">0.00</span></div>
-                </div>
+                <div id="order-summary"></div>
                 <button type="submit" class="btn-primary">Conferma Ordine</button>
             </form>
         </div>
