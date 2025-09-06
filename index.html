@@ -3,227 +3,281 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Mirella Agricola</title>
+    <title>Azienda Agricola Mirella - Prodotti Freschi e Genuini</title>
     <link rel="stylesheet" href="style.css">
-    <style>
-        .admin-nav {
-            background: #dc3545;
-            padding: 1rem;
-            text-align: center;
-        }
-        .admin-nav h1 {
-            color: white;
-            margin-bottom: 1rem;
-        }
-        .admin-tabs {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        .admin-tabs button {
-            background: white;
-            color: #dc3545;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .admin-tabs button.active {
-            background: #28a745;
-            color: white;
-        }
-        .admin-section {
-            display: none;
-            padding: 2rem;
-        }
-        .admin-section.active {
-            display: block;
-        }
-        .form-inline {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-        }
-        .form-inline input, .form-inline select, .form-inline button {
-            padding: 0.5rem;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            border-radius: 5px;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .data-table th, .data-table td {
-            padding: 1rem;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-        }
-        .data-table th {
-            background: #f8f9fa;
-            font-weight: bold;
-        }
-        .action-buttons {
-            display: flex;
-            gap: 0.5rem;
-        }
-        .btn-small {
-            padding: 0.25rem 0.5rem;
-            font-size: 0.8rem;
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
-        }
-        .btn-edit { background: #ffc107; color: #212529; }
-        .btn-delete { background: #dc3545; color: white; }
-        .btn-secondary {
-            background: #6c757d;
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .image-preview {
-            width: 50px;
-            height: 50px;
-            object-fit: cover;
-            border-radius: 5px;
-        }
-        .no-image {
-            width: 50px;
-            height: 50px;
-            background: #f8f9fa;
-            border: 1px dashed #dee2e6;
-            border-radius: 5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.8rem;
-            color: #6c757d;
-        }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <div class="admin-nav">
-        <h1>🔧 Pannello Amministrazione</h1>
-        <div class="admin-tabs">
-            <button onclick="showAdminSection('categories', this)" class="active">Categorie</button>
-            <button onclick="showAdminSection('products', this)">Prodotti</button>
-            <button onclick="showAdminSection('orders', this)">Ordini</button>
-            <button onclick="showAdminSection('stats', this)">Statistiche</button>
-        </div>
-    </div>
-
-    <!-- Categories Section -->
-    <div id="categories" class="admin-section active">
-        <h2>Gestione Categorie</h2>
-        <div class="form-inline">
-            <input type="text" id="category-name" placeholder="Nome categoria">
-            <input type="text" id="category-desc" placeholder="Descrizione">
-            <input type="file" id="category-image" accept="image/*" style="display: none;">
-            <button type="button" onclick="document.getElementById('category-image').click()" class="btn-secondary">📷 Immagine</button>
-            <button onclick="addCategory()" class="btn-primary">Aggiungi</button>
-        </div>
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Immagine</th>
-                    <th>Nome</th>
-                    <th>Descrizione</th>
-                    <th>Azioni</th>
-                </tr>
-            </thead>
-            <tbody id="categories-table"></tbody>
-        </table>
-    </div>
-
-    <!-- Products Section -->
-    <div id="products" class="admin-section">
-        <h2>Gestione Prodotti</h2>
-        <div class="form-inline">
-            <input type="text" id="product-name" placeholder="Nome prodotto">
-            <input type="text" id="product-desc" placeholder="Descrizione">
-            <input type="number" id="product-price" placeholder="Prezzo" step="0.01">
-            <input type="number" id="product-stock" placeholder="Scorte">
-            <select id="product-category"></select>
-            <input type="text" id="product-unit" placeholder="Unità (kg, pz, ecc.)">
-            <input type="file" id="product-image" accept="image/*" style="display: none;">
-            <button type="button" onclick="document.getElementById('product-image').click()" class="btn-secondary">📷 Immagine</button>
-            <button onclick="addProduct()" class="btn-primary">Aggiungi</button>
-        </div>
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Immagine</th>
-                    <th>Nome</th>
-                    <th>Categoria</th>
-                    <th>Prezzo</th>
-                    <th>Scorte</th>
-                    <th>Unità</th>
-                    <th>Azioni</th>
-                </tr>
-            </thead>
-            <tbody id="products-table"></tbody>
-        </table>
-    </div>
-
-    <!-- Orders Section -->
-    <div id="orders" class="admin-section">
-        <h2>Gestione Ordini</h2>
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Cliente</th>
-                    <th>Data</th>
-                    <th>Ritiro</th>
-                    <th>Totale</th>
-                    <th>Stato</th>
-                    <th>Azioni</th>
-                </tr>
-            </thead>
-            <tbody id="orders-table"></tbody>
-        </table>
-    </div>
-
-    <!-- Stats Section -->
-    <div id="stats" class="admin-section">
-        <h2>Statistiche</h2>
-        <div class="grid">
-            <div class="card">
-                <h3>Ordini Totali</h3>
-                <div id="total-orders" style="font-size: 2rem; color: #28a745;">0</div>
+    <!-- Header -->
+    <header class="header">
+        <nav class="nav-container">
+            <div class="logo">
+                <i class="fas fa-leaf"></i>
+                <span>Azienda Agricola Mirella</span>
             </div>
-            <div class="card">
-                <h3>Ricavi Totali</h3>
-                <div id="total-revenue" style="font-size: 2rem; color: #28a745;">€0.00</div>
+            <ul class="nav-menu" id="nav-menu">
+                <li class="nav-item">
+                    <a href="#home" class="nav-link active">
+                        <i class="fas fa-home"></i> Home
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#products" class="nav-link">
+                        <i class="fas fa-shopping-basket"></i> Prodotti
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#about" class="nav-link">
+                        <i class="fas fa-info-circle"></i> Chi Siamo
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#contact" class="nav-link">
+                        <i class="fas fa-envelope"></i> Contatti
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#cart" class="nav-link">
+                        <i class="fas fa-shopping-cart"></i> Carrello
+                        <span class="cart-badge" id="cart-count">0</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#login" class="nav-link" id="auth-link">
+                        <i class="fas fa-user"></i> Accedi
+                    </a>
+                </li>
+            </ul>
+            <div class="mobile-toggle" id="mobile-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
             </div>
-            <div class="card">
-                <h3>Prodotti Attivi</h3>
-                <div id="active-products" style="font-size: 2rem; color: #28a745;">0</div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Home Section -->
+        <section id="home" class="section active">
+            <div class="hero">
+                <div class="hero-content">
+                    <h1>Benvenuti all'Azienda Agricola Mirella</h1>
+                    <p>Prodotti freschi e genuini direttamente dalla nostra terra</p>
+                    <button class="cta-button" id="cta-button">
+                        <i class="fas fa-shopping-basket"></i>
+                        Scopri i nostri prodotti
+                    </button>
+                </div>
             </div>
-            <div class="card">
-                <h3>Ordini Pendenti</h3>
-                <div id="pending-orders" style="font-size: 2rem; color: #ffc107;">0</div>
+        </section>
+
+        <!-- Products Section -->
+        <section id="products" class="section">
+            <div class="container">
+                <h2>I Nostri Prodotti</h2>
+                
+                <!-- Search and Filters -->
+                <div class="search-filters">
+                    <div class="search-box">
+                        <input type="text" id="search-input" placeholder="Cerca prodotti...">
+                        <button id="search-button">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    <div class="filters">
+                        <select id="category-filter">
+                            <option value="">Tutte le categorie</option>
+                        </select>
+                        <select id="price-filter">
+                            <option value="">Tutti i prezzi</option>
+                            <option value="0-5">€0 - €5</option>
+                            <option value="5-10">€5 - €10</option>
+                            <option value="10-20">€10 - €20</option>
+                            <option value="20+">€20+</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Categories -->
+                <div class="categories-grid" id="categories-grid">
+                    <!-- Categories will be loaded here -->
+                </div>
+
+                <!-- Products Grid -->
+                <div class="products-grid" id="products-grid">
+                    <!-- Products will be loaded here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="section">
+            <div class="container">
+                <h2>Chi Siamo</h2>
+                <div class="about-content">
+                    <div class="about-text">
+                        <p>L'Azienda Agricola Mirella è una realtà familiare che da generazioni si dedica alla coltivazione di prodotti freschi e genuini.</p>
+                        <p>La nostra missione è portare sulla vostra tavola il meglio della nostra terra, rispettando l'ambiente e le tradizioni agricole.</p>
+                        <ul>
+                            <li><i class="fas fa-check"></i> Prodotti biologici certificati</li>
+                            <li><i class="fas fa-check"></i> Coltivazione sostenibile</li>
+                            <li><i class="fas fa-check"></i> Freschezza garantita</li>
+                            <li><i class="fas fa-check"></i> Tradizione familiare</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="section">
+            <div class="container">
+                <h2>Contattaci</h2>
+                <div class="contact-content">
+                    <div class="contact-info">
+                        <div class="contact-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <div>
+                                <h3>Indirizzo</h3>
+                                <p>Via dei Campi, 123<br>12345 Città (PR)</p>
+                            </div>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-phone"></i>
+                            <div>
+                                <h3>Telefono</h3>
+                                <p>+39 123 456 7890</p>
+                            </div>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-envelope"></i>
+                            <div>
+                                <h3>Email</h3>
+                                <p>info@aziendamirella.it</p>
+                            </div>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-clock"></i>
+                            <div>
+                                <h3>Orari</h3>
+                                <p>Lun-Ven: 8:00-18:00<br>Sab: 8:00-12:00</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Cart Section -->
+        <section id="cart" class="section">
+            <div class="container">
+                <h2>Carrello</h2>
+                <div class="cart-content">
+                    <div class="cart-items" id="cart-items">
+                        <p class="empty-cart">Il carrello è vuoto</p>
+                    </div>
+                    <div class="cart-summary" id="cart-summary" style="display: none;">
+                        <div class="cart-total">
+                            <h3>Totale: €<span id="cart-total">0.00</span></h3>
+                        </div>
+                        <button class="checkout-button" id="checkout-button">
+                            <i class="fas fa-credit-card"></i>
+                            Procedi al pagamento
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Login Section -->
+        <section id="login" class="section">
+            <div class="container">
+                <div class="auth-container">
+                    <div class="auth-form" id="login-form">
+                        <h2>Accedi</h2>
+                        <form id="login-form-element">
+                            <div class="form-group">
+                                <input type="email" id="login-email" placeholder="Email" required>
+                            </div>
+                            <div class="form-group">
+                                <input type="password" id="login-password" placeholder="Password" required>
+                            </div>
+                            <button type="submit" class="auth-button">
+                                <i class="fas fa-sign-in-alt"></i>
+                                Accedi
+                            </button>
+                        </form>
+                        <p class="auth-switch">
+                            Non hai un account? 
+                            <a href="#" id="show-register">Registrati</a>
+                        </p>
+                    </div>
+
+                    <div class="auth-form" id="register-form" style="display: none;">
+                        <h2>Registrati</h2>
+                        <form id="register-form-element">
+                            <div class="form-group">
+                                <input type="text" id="register-name" placeholder="Nome completo" required>
+                            </div>
+                            <div class="form-group">
+                                <input type="email" id="register-email" placeholder="Email" required>
+                            </div>
+                            <div class="form-group">
+                                <input type="password" id="register-password" placeholder="Password" required>
+                            </div>
+                            <button type="submit" class="auth-button">
+                                <i class="fas fa-user-plus"></i>
+                                Registrati
+                            </button>
+                        </form>
+                        <p class="auth-switch">
+                            Hai già un account? 
+                            <a href="#" id="show-login">Accedi</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Azienda Agricola Mirella</h3>
+                    <p>Prodotti freschi e genuini dalla nostra terra</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Contatti</h3>
+                    <p>Via dei Campi, 123</p>
+                    <p>Tel: +39 123 456 7890</p>
+                    <p>Email: info@aziendamirella.it</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Seguici</h3>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Azienda Agricola Mirella. Tutti i diritti riservati.</p>
             </div>
         </div>
-    </div>
+    </footer>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth-compat.js"></script>
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-storage-compat.js"></script>
+    
+    <!-- Custom Scripts -->
     <script src="firebase-config.js"></script>
-    <script src="admin.js"></script>
-    <!-- <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-    <script src="firebase-config.js"></script>
-    <script src="admin.js"></script>  -->
+    <script src="script.js"></script>
 </body>
 </html>
