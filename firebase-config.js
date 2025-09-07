@@ -1,4 +1,4 @@
-// Firebase configuration using compat version
+// Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyA7Wkf7Xu6873kb82nqWdS_IVFvxC1TNQg",
   authDomain: "mirella-dd7ff.firebaseapp.com",
@@ -12,14 +12,3 @@ const firebaseConfig = {
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
-
-// Initialize Firebase services
-const database = firebase.database();
-const auth = firebase.auth();
-// Rimuovi storage per ora se non necessario
-// const storage = firebase.storage();
-
-// Make available globally
-//window.db = database;
-//window.auth = auth;
-// window.storage = storage;
