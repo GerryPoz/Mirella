@@ -408,14 +408,15 @@ main {
 
 .search-input,
 .category-filter {
-    padding: 1rem 1.5rem;
+    padding: 1.2rem 2rem;
     border: 2px solid #e0e0e0;
     border-radius: 12px;
-    font-size: 1rem;
+    font-size: 1.1rem;
     transition: all 0.3s ease;
     background: #fafafa;
-    min-width: 180px;
+    min-width: 220px;
     font-family: inherit;
+    height: 50px;
 }
 
 .search-input:focus,
@@ -430,6 +431,7 @@ main {
 .search-input::placeholder {
     color: #999;
     font-style: italic;
+    font-size: 1rem;
 }
 
 .category-filter {
@@ -437,7 +439,8 @@ main {
 }
 
 .category-filter option {
-    padding: 0.5rem;
+    padding: 0.8rem;
+    font-size: 1rem;
 }
 
 .products-grid {
