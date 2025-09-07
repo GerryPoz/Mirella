@@ -175,7 +175,20 @@ function setupEventListeners() {
 // Handle navigation
 function handleNavigation(e) {
     e.preventDefault();
-    const targetId = e.target.getAttribute('href').substring(1);
+    
+    // Controllo sicuro per l'attributo href
+    const href = e.target.getAttribute('href');
+    if (!href || href === '#' || !href.startsWith('#')) {
+        console.log('Invalid href:', href);
+        return;
+    }
+    
+    const targetId = href.substring(1);
+    if (!targetId) {
+        console.log('Empty target ID');
+        return;
+    }
+    
     showSection(targetId);
     
     // Update active nav link
