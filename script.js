@@ -112,7 +112,7 @@ function setupEventListeners() {
         registerForm.addEventListener('submit', handleRegister);
     }
     
-    // Search and filter
+    // Search and filter - CORREZIONE QUI
     const searchInput = document.getElementById('search-input');
     const categoryFilter = document.getElementById('category-filter');
     
@@ -121,7 +121,7 @@ function setupEventListeners() {
     }
     
     if (categoryFilter) {
-        categoryFilter.addEventListener('change', filterByCategory);
+        categoryFilter.addEventListener('change', performSearch); // Cambiato da filterByCategory a performSearch
     }
     
     // User menu
@@ -337,8 +337,16 @@ function renderProducts(filteredProducts = null) {
 
 // Search functionality
 function performSearch() {
-    const searchTerm = document.getElementById('search-input').value.toLowerCase();
-    const categoryFilter = document.getElementById('category-filter').value;
+    const searchInput = document.getElementById('search-input');
+    const categoryFilter = document.getElementById('category-filter');
+    
+    if (!searchInput || !categoryFilter) {
+        console.error('Search elements not found');
+        return;
+    }
+    
+    const searchTerm = searchInput.value.toLowerCase();
+    const categoryFilterValue = categoryFilter.value;
     
     let filteredProducts = products;
     
@@ -351,12 +359,13 @@ function performSearch() {
     }
     
     // Filter by category
-    if (categoryFilter) {
+    if (categoryFilterValue) {
         filteredProducts = filteredProducts.filter(product => 
-            product.categoryId === categoryFilter
+            product.categoryId === categoryFilterValue
         );
     }
     
+    console.log('Filtered products:', filteredProducts.length);
     renderProducts(filteredProducts);
 }
 
