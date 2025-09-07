@@ -201,9 +201,14 @@ function showSection(sectionId) {
 
 // Toggle mobile menu
 function toggleMobileMenu() {
+    console.log('Toggle mobile menu called'); // Debug
     const navMenu = document.getElementById('nav-menu');
     if (navMenu) {
         navMenu.classList.toggle('show');
+        console.log('Menu classes:', navMenu.className); // Debug
+        console.log('Menu display:', window.getComputedStyle(navMenu).display); // Debug
+    } else {
+        console.log('Nav menu not found!'); // Debug
     }
 }
 
