@@ -16,9 +16,10 @@ firebase.initializeApp(firebaseConfig);
 // Initialize Firebase services
 const database = firebase.database();
 const auth = firebase.auth();
-const storage = firebase.storage();
+// Rimuovi storage per ora se non necessario
+// const storage = firebase.storage();
 
 // Make available globally
 window.db = database;
 window.auth = auth;
-window.storage = storage;
+// window.storage = storage;
