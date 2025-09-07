@@ -899,36 +899,78 @@ function renderUserOrders(orders) {
         const statusClass = order.status || 'pending';
         const statusText = {
             'pending': 'In attesa',
+            'confirmed': 'Confermato', 
+            'ready': 'Pronto per il ritiro',
             'completed': 'Completato',
             'cancelled': 'Annullato'
         }[statusClass] || 'In attesa';
 
         const itemsHTML = order.items ? order.items.map(item => `
-            <div class="order-item">
-                <div>
-                    <div class="order-item-name">${item.name}</div>
-                    <div class="order-item-details">${item.quantity} x €${item.price.toFixed(2)}</div>
+            <div class="order-item-detail">
+                <div class="item-info">
+                    <strong>${item.name}</strong><br>
+                    <span class="item-quantity">Quantità: ${item.quantity} ${item.unit || 'pz'}</span>
                 </div>
-                <div>€${(item.quantity * item.price).toFixed(2)}</div>
+                <div class="item-price">€${(item.quantity * item.price).toFixed(2)}</div>
             </div>
         `).join('') : '<p>Dettagli prodotti non disponibili</p>';
 
         return `
-            <div class="order-card">
-                <div class="order-header">
-                    <div class="order-id">Ordine #${order.id.substring(0, 8)}</div>
-                    <div class="order-date">${orderDate}</div>
-                    <div class="order-status ${statusClass}">${statusText}</div>
+            <div class="order-card-compressed">
+                <div class="order-header-compressed">
+                    <div class="order-main-info">
+                        <div class="order-id">Ordine #${order.id.substring(0, 8)}</div>
+                        <div class="order-date">${orderDate}</div>
+                        <div class="order-status ${statusClass}">${statusText}</div>
+                    </div>
+                    <div class="order-summary-info">
+                        <div class="order-total">€${(order.totalAmount || order.total || 0).toFixed(2)}</div>
+                        <button class="btn-details" onclick="toggleUserOrderDetails('${order.id}')">
+                            <span id="btn-text-${order.id}">Dettagli</span>
+                            <span id="btn-icon-${order.id}">▼</span>
+                        </button>
+                    </div>
                 </div>
-                <div class="order-items">
-                    ${itemsHTML}
-                </div>
-                <div class="order-total">
-                    Totale: €${(order.totalAmount || order.total || 0).toFixed(2)}
+                <div id="details-${order.id}" class="order-details-expanded" style="display: none;">
+                    <div class="order-details-content">
+                        <div class="order-info-section">
+                            <h4>Informazioni Ordine:</h4>
+                            <p><strong>Data ordine:</strong> ${orderDate}</p>
+                            <p><strong>Stato:</strong> <span class="status-badge ${statusClass}">${statusText}</span></p>
+                            ${order.pickupDate ? `<p><strong>Data ritiro:</strong> ${order.pickupDate}</p>` : ''}
+                            ${order.notes ? `<p><strong>Note:</strong> ${order.notes}</p>` : ''}
+                        </div>
+                        <div class="order-products-section">
+                            <h4>Prodotti Ordinati:</h4>
+                            <div class="order-items-list">
+                                ${itemsHTML}
+                            </div>
+                            <div class="order-total-section">
+                                <strong>Totale: €${(order.totalAmount || order.total || 0).toFixed(2)}</strong>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
     }).join('');
 
     ordersContent.innerHTML = ordersHTML;
+}
+
+// Funzione per mostrare/nascondere i dettagli dell'ordine utente
+function toggleUserOrderDetails(orderId) {
+    const detailsDiv = document.getElementById(`details-${orderId}`);
+    const btnText = document.getElementById(`btn-text-${orderId}`);
+    const btnIcon = document.getElementById(`btn-icon-${orderId}`);
+    
+    if (detailsDiv.style.display === 'none') {
+        detailsDiv.style.display = 'block';
+        btnText.textContent = 'Nascondi';
+        btnIcon.textContent = '▲';
+    } else {
+        detailsDiv.style.display = 'none';
+        btnText.textContent = 'Dettagli';
+        btnIcon.textContent = '▼';
+    }
 }
