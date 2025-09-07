@@ -1,212 +1,164 @@
 // Global variables
 let currentUser = null;
-let cart = [];
-let products = [];
 let categories = [];
-let filteredProducts = [];
+let products = [];
+let cart = [];
+let db = null;
 
 // Initialize app when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded, initializing app...');
-    
-    // Check if Firebase services are available
-    if (typeof firebase !== 'undefined' && firebase.database && firebase.auth) {
-        console.log('Firebase services initialized:', {
-            db: !!firebase.database(),
-            auth: !!firebase.auth()
-        });
-        
-        // Initialize app after a short delay to ensure Firebase is ready
-        setTimeout(() => {
-            try {
-                initializeApp();
-            } catch (error) {
-                console.error('Error initializing Firebase:', error);
-                // Retry after another delay
-                setTimeout(() => {
-                    initializeApp();
-                }, 2000);
-            }
-        }, 1000);
-    } else {
-        console.error('Firebase services not available');
-    }
+    initializeApp();
 });
 
+// Initialize the application
 function initializeApp() {
-    console.log('Initializing app...');
-    
-    // Verifica che tutte le funzioni necessarie siano definite
-    if (typeof setupEventListeners !== 'function') {
-        console.error('setupEventListeners function is not defined');
-        return;
-    }
-    
-    if (typeof loadData !== 'function') {
-        console.error('loadData function is not defined');
-        return;
-    }
-    
-    if (typeof loadCart !== 'function') {
-        console.error('loadCart function is not defined');
-        return;
-    }
-    
-    setupEventListeners();
-    loadData();
-    loadCart();
-    
-    // Auth state listener
-    firebase.auth().onAuthStateChanged(function(user) {
-        console.log('Auth state changed:', user ? 'logged in' : 'logged out');
-        if (user) {
-            currentUser = user;
-            updateAuthUI(true);
-            loadUserProfile();
-            console.log('User logged in:', user.email);
-        } else {
-            currentUser = null;
-            updateAuthUI(false);
-            console.log('User logged out');
+    try {
+        console.log('Initializing app...');
+        
+        // Initialize Firebase
+        if (typeof firebase !== 'undefined' && firebase.apps.length === 0) {
+            console.log('Firebase not initialized, initializing...');
+            // Firebase will be initialized by firebase-config.js
         }
-    });
-    
-    // Show home section by default
-    showSection('home');
+        
+        // Get database reference
+        db = firebase.database();
+        console.log('Database reference obtained');
+        
+        // Setup event listeners
+        setupEventListeners();
+        
+        // Setup authentication state listener
+        firebase.auth().onAuthStateChanged(handleAuthStateChange);
+        
+        // Load initial data
+        loadData();
+        
+        console.log('App initialization complete');
+    } catch (error) {
+        console.error('Error initializing app:', error);
+    }
 }
 
+// Setup all event listeners
 function setupEventListeners() {
-    // Navigation links
-    document.querySelectorAll('.nav-link').forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const sectionId = this.getAttribute('href').substring(1);
-            showSection(sectionId);
-            
-            // Update active nav link
-            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-            this.classList.add('active');
-            
-            // Close mobile menu if open
-            const navMenu = document.getElementById('nav-menu');
-            if (navMenu) {
-                navMenu.classList.remove('show');
-            }
-        });
+    console.log('Setting up event listeners...');
+    
+    // Navigation
+    const navLinks = document.querySelectorAll('.nav-link');
+    navLinks.forEach(link => {
+        link.addEventListener('click', handleNavigation);
     });
     
     // Mobile menu toggle
-    const mobileToggle = document.getElementById('mobile-toggle');
-    if (mobileToggle) {
-        mobileToggle.addEventListener('click', function() {
-            const navMenu = document.getElementById('nav-menu');
-            if (navMenu) {
-                navMenu.classList.toggle('show');
+    const menuToggle = document.getElementById('menu-toggle');
+    if (menuToggle) {
+        menuToggle.addEventListener('click', toggleMobileMenu);
+    }
+    
+    // Login modal
+    const loginLink = document.getElementById('login-link');
+    if (loginLink) {
+        loginLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            openLoginModal();
+        });
+    }
+    
+    // Modal close
+    const modalClose = document.getElementById('modal-close');
+    if (modalClose) {
+        modalClose.addEventListener('click', closeLoginModal);
+    }
+    
+    // Close modal when clicking outside
+    const modal = document.getElementById('login-modal');
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeLoginModal();
             }
         });
     }
     
-    // Search functionality
-    const searchBox = document.getElementById('search-input');
-    if (searchBox) {
-        searchBox.addEventListener('input', performSearch);
-    }
-    
-    const searchButton = document.getElementById('search-button');
-    if (searchButton) {
-        searchButton.addEventListener('click', performSearch);
-    }
-    
-    // Category filter
-    const categoryFilter = document.getElementById('category-filter');
-    if (categoryFilter) {
-        categoryFilter.addEventListener('change', function() {
-            filterByCategory(this.value);
-        });
-    }
-    
-    // Auth forms - CORREZIONE QUI
-    const loginFormElement = document.getElementById('login-form-element');
-    if (loginFormElement) {
-        loginFormElement.addEventListener('submit', handleLogin);
-    }
-    
-    const registerFormElement = document.getElementById('register-form-element');
-    if (registerFormElement) {
-        registerFormElement.addEventListener('submit', handleRegister);
-    }
-    
-    // Auth form switching - AGGIUNTO
+    // Auth form switching
     const showRegisterLink = document.getElementById('show-register');
-    if (showRegisterLink) {
-        showRegisterLink.addEventListener('click', function(e) {
-            e.preventDefault();
-            document.getElementById('login-form').style.display = 'none';
-            document.getElementById('register-form').style.display = 'block';
-        });
-    }
-    
     const showLoginLink = document.getElementById('show-login');
-    if (showLoginLink) {
-        showLoginLink.addEventListener('click', function(e) {
+    
+    if (showRegisterLink) {
+        showRegisterLink.addEventListener('click', (e) => {
             e.preventDefault();
-            document.getElementById('register-form').style.display = 'none';
-            document.getElementById('login-form').style.display = 'block';
+            showRegisterForm();
         });
     }
     
-    // Checkout button
-    const checkoutBtn = document.getElementById('checkout-button');
+    if (showLoginLink) {
+        showLoginLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            showLoginForm();
+        });
+    }
+    
+    // Auth forms
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    
+    if (loginForm) {
+        loginForm.addEventListener('submit', handleLogin);
+    }
+    
+    if (registerForm) {
+        registerForm.addEventListener('submit', handleRegister);
+    }
+    
+    // Search and filter
+    const searchInput = document.getElementById('search-input');
+    const categoryFilter = document.getElementById('category-filter');
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', performSearch);
+    }
+    
+    if (categoryFilter) {
+        categoryFilter.addEventListener('change', filterByCategory);
+    }
+    
+    // User menu
+    const userMenu = document.getElementById('user-menu');
+    const logoutLink = document.getElementById('logout-link');
+    
+    if (userMenu) {
+        userMenu.addEventListener('click', toggleUserMenu);
+    }
+    
+    if (logoutLink) {
+        logoutLink.addEventListener('click', handleLogout);
+    }
+    
+    // Checkout
+    const checkoutBtn = document.getElementById('checkout-btn');
     if (checkoutBtn) {
         checkoutBtn.addEventListener('click', handleCheckout);
     }
+    
+    console.log('Event listeners setup complete');
 }
 
-function loadData() {
-    console.log('Loading data...');
+// Handle navigation
+function handleNavigation(e) {
+    e.preventDefault();
+    const targetId = e.target.getAttribute('href').substring(1);
+    showSection(targetId);
     
-    // Initialize sample data if database is empty
-    initializeSampleData();
-    
-    // Load categories
-    firebase.database().ref('categories').on('value', function(snapshot) {
-        console.log('Categories snapshot received');
-        const data = snapshot.val();
-        if (data) {
-            categories = Object.keys(data).map(key => ({
-                id: key,
-                ...data[key]
-            }));
-            console.log('Categories loaded:', categories.length);
-            renderCategories();
-            updateCategoryFilter();
-        } else {
-            console.log('No categories found');
-        }
-    }, function(error) {
-        console.error('Error loading categories:', error);
+    // Update active nav link
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('active');
     });
-    
-    // Load products
-    firebase.database().ref('products').on('value', function(snapshot) {
-        console.log('Products snapshot received');
-        const data = snapshot.val();
-        if (data) {
-            products = Object.keys(data).map(key => ({
-                id: key,
-                ...data[key]
-            }));
-            filteredProducts = [...products];
-            console.log('Products loaded:', products.length);
-            renderProducts();
-        } else {
-            console.log('No products found');
-        }
-    }, function(error) {
-        console.error('Error loading products:', error);
-    });
+    e.target.classList.add('active');
 }
 
+// Show specific section
 function showSection(sectionId) {
     // Hide all sections
     document.querySelectorAll('.section').forEach(section => {
@@ -217,102 +169,237 @@ function showSection(sectionId) {
     const targetSection = document.getElementById(sectionId);
     if (targetSection) {
         targetSection.classList.add('active');
-        
-        // Update page title
-        const sectionTitles = {
-            'home': 'Home - Mirella Ortofrutta',
-            'chi-siamo': 'Chi Siamo - Mirella Ortofrutta',
-            'prodotti': 'Prodotti - Mirella Ortofrutta',
-            'carrello': 'Carrello - Mirella Ortofrutta',
-            'accedi': 'Accedi - Mirella Ortofrutta'
-        };
-        document.title = sectionTitles[sectionId] || 'Mirella Ortofrutta';
     }
 }
 
+// Toggle mobile menu
+function toggleMobileMenu() {
+    const navMenu = document.getElementById('nav-menu');
+    if (navMenu) {
+        navMenu.classList.toggle('show');
+    }
+}
+
+// Modal functions
+function openLoginModal() {
+    const modal = document.getElementById('login-modal');
+    if (modal) {
+        modal.classList.add('show');
+        showLoginForm();
+    }
+}
+
+function closeLoginModal() {
+    const modal = document.getElementById('login-modal');
+    if (modal) {
+        modal.classList.remove('show');
+    }
+}
+
+function showLoginForm() {
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    const authTitle = document.getElementById('auth-title');
+    
+    if (loginForm && registerForm && authTitle) {
+        loginForm.style.display = 'block';
+        registerForm.style.display = 'none';
+        authTitle.textContent = 'Accedi al tuo account';
+    }
+}
+
+function showRegisterForm() {
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    const authTitle = document.getElementById('auth-title');
+    
+    if (loginForm && registerForm && authTitle) {
+        loginForm.style.display = 'none';
+        registerForm.style.display = 'block';
+        authTitle.textContent = 'Crea un nuovo account';
+    }
+}
+
+// Load data from Firebase
+function loadData() {
+    console.log('Loading data from Firebase...');
+    
+    if (!db) {
+        console.error('Database not initialized');
+        initializeSampleData();
+        return;
+    }
+    
+    // Load categories and products
+    db.ref().on('value', (snapshot) => {
+        try {
+            const data = snapshot.val();
+            console.log('Data loaded from Firebase:', data);
+            
+            if (data) {
+                categories = data.categories ? Object.values(data.categories) : [];
+                products = data.products ? Object.values(data.products) : [];
+                
+                console.log('Categories loaded:', categories.length);
+                console.log('Products loaded:', products.length);
+                
+                renderCategories();
+                updateCategoryFilter();
+                renderProducts();
+            } else {
+                console.log('No data found, initializing sample data...');
+                initializeSampleData();
+            }
+        } catch (error) {
+            console.error('Error processing data:', error);
+            initializeSampleData();
+        }
+    }, (error) => {
+        console.error('Error loading data:', error);
+        initializeSampleData();
+    });
+}
+
+// Render categories
 function renderCategories() {
-    const categoriesContainer = document.getElementById('categories-grid');
-    if (!categoriesContainer) {
+    const container = document.getElementById('categories-grid');
+    if (!container) {
         console.error('Categories container not found');
         return;
     }
     
-    categoriesContainer.innerHTML = categories.map(category => `
-        <div class="category-card" onclick="filterByCategory('${category.id}'); showSection('prodotti');">
-            <img src="${category.image}" alt="${category.name}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbW1hZ2luZTwvdGV4dD48L3N2Zz4='">
-            <div class="category-info">
-                <h3>${category.name}</h3>
-                <p>${category.description}</p>
-            </div>
+    console.log('Rendering categories:', categories.length);
+    
+    if (categories.length === 0) {
+        container.innerHTML = '<p class="empty-state">Nessuna categoria disponibile</p>';
+        return;
+    }
+    
+    container.innerHTML = categories.map(category => `
+        <div class="category-card" onclick="filterByCategory('${category.id}')">
+            <img src="${category.image}" alt="${category.name}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjZjVmNWY1Ii8+Cjx0ZXh0IHg9IjQwIiB5PSI0NSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSIjOTk5Ij7wn5OKCZ0ZXh0Pgo8L3N2Zz4K'">
+            <h3>${category.name}</h3>
+            <p>${category.description || ''}</p>
         </div>
     `).join('');
 }
 
-function renderProducts() {
-    const productsContainer = document.getElementById('products-grid');
-    if (!productsContainer) {
+// Update category filter dropdown
+function updateCategoryFilter() {
+    const select = document.getElementById('category-filter');
+    if (!select) return;
+    
+    select.innerHTML = '<option value="">Tutte le categorie</option>' +
+        categories.map(category => 
+            `<option value="${category.id}">${category.name}</option>`
+        ).join('');
+}
+
+// Render products
+function renderProducts(filteredProducts = null) {
+    const container = document.getElementById('products-grid');
+    if (!container) {
         console.error('Products container not found');
         return;
     }
     
-    if (filteredProducts.length === 0) {
-        productsContainer.innerHTML = `
-            <div class="empty-state">
-                <p>Nessun prodotto trovato</p>
+    const productsToRender = filteredProducts || products;
+    console.log('Rendering products:', productsToRender.length);
+    
+    if (productsToRender.length === 0) {
+        container.innerHTML = '<p class="empty-state">Nessun prodotto disponibile</p>';
+        return;
+    }
+    
+    container.innerHTML = productsToRender.map(product => {
+        const isUnavailable = !product.available;
+        return `
+            <div class="product-card ${isUnavailable ? 'unavailable' : ''}">
+                <img src="${product.image}" alt="${product.name}" class="product-image" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjgwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDI4MCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyODAiIGhlaWdodD0iMjAwIiBmaWxsPSIjZjVmNWY1Ii8+Cjx0ZXh0IHg9IjE0MCIgeT0iMTA1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5OTkiPvCfk4o8L3RleHQ+Cjwvc3ZnPgo='">
+                <div class="product-info">
+                    <h3 class="product-name">${product.name}</h3>
+                    <p class="product-price">€${product.price.toFixed(2)}${product.unit ? '/' + product.unit : ''}</p>
+                    <p class="product-description">${product.description || ''}</p>
+                    <button class="add-to-cart" onclick="addToCart('${product.id}')" ${isUnavailable ? 'disabled' : ''}>
+                        ${isUnavailable ? 'Non Disponibile' : 'Aggiungi al Carrello'}
+                    </button>
+                </div>
             </div>
         `;
-        return;
-    }
-    
-    productsContainer.innerHTML = filteredProducts.map(product => `
-        <div class="product-card">
-            <img src="${product.image}" alt="${product.name}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbW1hZ2luZTwvdGV4dD48L3N2Zz4='">
-            <div class="product-info">
-                <h3>${product.name}</h3>
-                <p class="product-description">${product.description}</p>
-                <div class="product-price">€${product.price.toFixed(2)}/${product.unit}</div>
-                <button class="btn btn-primary" onclick="addToCart('${product.id}')" ${!product.available ? 'disabled' : ''}>
-                    ${product.available ? '<i class="fas fa-cart-plus"></i> Aggiungi' : 'Non disponibile'}
-                </button>
-            </div>
-        </div>
-    `).join('');
+    }).join('');
 }
 
-function addToCart(productId) {
-    const product = products.find(p => p.id === productId);
-    if (!product || !product.available) {
-        showMessage('Prodotto non disponibile', 'error');
-        return;
+// Search functionality
+function performSearch() {
+    const searchTerm = document.getElementById('search-input').value.toLowerCase();
+    const categoryFilter = document.getElementById('category-filter').value;
+    
+    let filteredProducts = products;
+    
+    // Filter by search term
+    if (searchTerm) {
+        filteredProducts = filteredProducts.filter(product => 
+            product.name.toLowerCase().includes(searchTerm) ||
+            (product.description && product.description.toLowerCase().includes(searchTerm))
+        );
     }
     
+    // Filter by category
+    if (categoryFilter) {
+        filteredProducts = filteredProducts.filter(product => 
+            product.categoryId === categoryFilter
+        );
+    }
+    
+    renderProducts(filteredProducts);
+}
+
+// Filter by category
+function filterByCategory(categoryId) {
+    const categoryFilter = document.getElementById('category-filter');
+    if (categoryFilter) {
+        categoryFilter.value = categoryId || '';
+    }
+    
+    // Show products section
+    showSection('prodotti');
+    
+    // Update active nav
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('active');
+    });
+    document.querySelector('a[href="#prodotti"]').classList.add('active');
+    
+    // Perform search with current filters
+    performSearch();
+}
+
+// Cart functions
+function addToCart(productId) {
+    const product = products.find(p => p.id === productId);
+    if (!product) return;
+    
     const existingItem = cart.find(item => item.id === productId);
+    
     if (existingItem) {
         existingItem.quantity += 1;
-        showMessage(`Quantità di ${product.name} aumentata`, 'success');
     } else {
         cart.push({
-            id: productId,
-            name: product.name,
-            price: product.price,
-            unit: product.unit,
-            image: product.image,
+            ...product,
             quantity: 1
         });
-        showMessage(`${product.name} aggiunto al carrello`, 'success');
     }
     
     updateCartUI();
-    saveCart();
+    console.log('Product added to cart:', product.name);
 }
 
 function removeFromCart(productId) {
     cart = cart.filter(item => item.id !== productId);
     updateCartUI();
-    saveCart();
 }
 
-function updateCartQuantity(productId, newQuantity) {
+function updateQuantity(productId, newQuantity) {
     const item = cart.find(item => item.id === productId);
     if (item) {
         if (newQuantity <= 0) {
@@ -320,133 +407,89 @@ function updateCartQuantity(productId, newQuantity) {
         } else {
             item.quantity = newQuantity;
             updateCartUI();
-            saveCart();
         }
     }
 }
 
 function updateCartUI() {
+    // Update cart count in navigation
+    const cartCount = document.getElementById('cart-count');
+    if (cartCount) {
+        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+        cartCount.textContent = totalItems;
+    }
+    
+    // Update cart content
     const cartContent = document.getElementById('cart-content');
     const cartSummary = document.getElementById('cart-summary');
-    const cartItems = document.getElementById('cart-items');
-    const cartTotal = document.getElementById('cart-total');
     
-    if (!cartContent || !cartSummary || !cartItems || !cartTotal) {
-        console.error('Cart UI elements not found');
-        return;
-    }
+    if (!cartContent) return;
     
     if (cart.length === 0) {
         cartContent.innerHTML = `
-            <div class="empty-cart">
-                <i class="fas fa-shopping-cart"></i>
+            <div class="empty-state">
                 <p>Il tuo carrello è vuoto</p>
-                <button onclick="showSection('prodotti')" class="btn-primary">
-                    Inizia a fare la spesa
-                </button>
+                <p>Aggiungi alcuni prodotti per iniziare!</p>
             </div>
         `;
-        cartSummary.style.display = 'none';
+        if (cartSummary) cartSummary.classList.add('hidden');
     } else {
-        cartContent.innerHTML = '';
-        cartSummary.style.display = 'block';
-        
-        let total = 0;
-        cartItems.innerHTML = cart.map(item => {
-            const itemTotal = item.price * item.quantity;
-            total += itemTotal;
-            
-            return `
-                <div class="cart-item">
-                    <img src="${item.image}" alt="${item.name}" class="cart-item-image">
-                    <div class="cart-item-info">
-                        <h4>${item.name}</h4>
-                        <p>€${item.price.toFixed(2)}/${item.unit}</p>
+        cartContent.innerHTML = cart.map(item => `
+            <div class="cart-item">
+                <img src="${item.image}" alt="${item.name}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjZjVmNWY1Ii8+Cjx0ZXh0IHg9IjQwIiB5PSI0NSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSIjOTk5Ij7wn5OKCZ0ZXh0Pgo8L3N2Zz4K'">
+                <div class="cart-item-info">
+                    <div class="cart-item-name">${item.name}</div>
+                    <div class="cart-item-price">€${item.price.toFixed(2)}${item.unit ? '/' + item.unit : ''}</div>
+                    <div class="quantity-controls">
+                        <button class="quantity-btn" onclick="updateQuantity('${item.id}', ${item.quantity - 1})">-</button>
+                        <span>${item.quantity}</span>
+                        <button class="quantity-btn" onclick="updateQuantity('${item.id}', ${item.quantity + 1})">+</button>
                     </div>
-                    <div class="cart-item-controls">
-                        <button onclick="updateCartQuantity('${item.id}', ${item.quantity - 1})" class="btn-quantity">-</button>
-                        <span class="quantity">${item.quantity}</span>
-                        <button onclick="updateCartQuantity('${item.id}', ${item.quantity + 1})" class="btn-quantity">+</button>
-                    </div>
-                    <div class="cart-item-total">
-                        €${itemTotal.toFixed(2)}
-                    </div>
-                    <button onclick="removeFromCart('${item.id}')" class="btn-remove">
-                        <i class="fas fa-trash"></i>
-                    </button>
                 </div>
-            `;
-        }).join('');
+                <button class="remove-item" onclick="removeFromCart('${item.id}')">Rimuovi</button>
+            </div>
+        `).join('');
         
-        cartTotal.textContent = total.toFixed(2);
-    }
-    
-    // Update cart badge in navigation
-    const cartBadge = document.querySelector('.cart-badge');
-    if (cartBadge) {
-        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-        cartBadge.textContent = totalItems;
-        cartBadge.style.display = totalItems > 0 ? 'block' : 'none';
-    }
-}
-
-function performSearch() {
-    const searchBox = document.getElementById('search-input');
-    if (!searchBox) return;
-    
-    const searchTerm = searchBox.value.toLowerCase();
-    
-    if (searchTerm === '') {
-        filteredProducts = [...products];
-    } else {
-        filteredProducts = products.filter(product => 
-            product.name.toLowerCase().includes(searchTerm) ||
-            product.description.toLowerCase().includes(searchTerm)
-        );
-    }
-    
-    renderProducts();
-}
-
-function filterByCategory(categoryId) {
-    if (categoryId === '') {
-        filteredProducts = [...products];
-    } else {
-        filteredProducts = products.filter(product => product.categoryId === categoryId);
-    }
-    
-    renderProducts();
-    
-    // Update category filter select
-    const categoryFilter = document.getElementById('category-filter');
-    if (categoryFilter) {
-        categoryFilter.value = categoryId;
+        // Update total
+        const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const cartTotal = document.getElementById('cart-total');
+        if (cartTotal) {
+            cartTotal.textContent = `Totale: €${total.toFixed(2)}`;
+        }
+        
+        if (cartSummary) cartSummary.classList.remove('hidden');
     }
 }
 
-function updateCategoryFilter() {
-    const categoryFilter = document.getElementById('category-filter');
-    if (!categoryFilter) return;
+// Authentication functions
+function handleAuthStateChange(user) {
+    console.log('Auth state changed:', user ? 'logged in' : 'logged out');
+    currentUser = user;
+    updateUserUI();
+}
+
+function updateUserUI() {
+    const loginLink = document.getElementById('login-link');
+    const userMenu = document.getElementById('user-menu');
+    const userName = document.getElementById('user-name');
+    const adminLink = document.getElementById('admin-link');
     
-    // Keep the "All categories" option and add category options
-    const allOption = categoryFilter.querySelector('option[value=""]');
-    categoryFilter.innerHTML = '';
-    
-    if (allOption) {
-        categoryFilter.appendChild(allOption);
+    if (currentUser) {
+        // User is logged in
+        if (loginLink) loginLink.classList.add('hidden');
+        if (userMenu) userMenu.classList.remove('hidden');
+        if (userName) userName.textContent = currentUser.displayName || currentUser.email;
+        
+        // Show admin link for admin users
+        if (adminLink && currentUser.email === 'admin@mirellaortofrutta.it') {
+            adminLink.classList.remove('hidden');
+        }
     } else {
-        const defaultOption = document.createElement('option');
-        defaultOption.value = '';
-        defaultOption.textContent = 'Tutte le categorie';
-        categoryFilter.appendChild(defaultOption);
+        // User is logged out
+        if (loginLink) loginLink.classList.remove('hidden');
+        if (userMenu) userMenu.classList.add('hidden');
+        if (adminLink) adminLink.classList.add('hidden');
     }
-    
-    categories.forEach(category => {
-        const option = document.createElement('option');
-        option.value = category.id;
-        option.textContent = category.name;
-        categoryFilter.appendChild(option);
-    });
 }
 
 function handleLogin(e) {
@@ -455,44 +498,17 @@ function handleLogin(e) {
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
     
-    if (!email || !password) {
-        showMessage('Inserisci email e password', 'error');
-        return;
-    }
-    
     console.log('Attempting login for:', email);
     
     firebase.auth().signInWithEmailAndPassword(email, password)
         .then((userCredential) => {
             console.log('Login successful:', userCredential.user.email);
+            closeLoginModal();
             showMessage('Login effettuato con successo!', 'success');
-            
-            // Reset form
-            document.getElementById('login-form-element').reset();
-            
-            // Redirect to home
-            showSection('home');
         })
         .catch((error) => {
             console.error('Login error:', error);
-            let errorMessage = 'Errore durante il login';
-            
-            switch (error.code) {
-                case 'auth/user-not-found':
-                    errorMessage = 'Utente non trovato';
-                    break;
-                case 'auth/wrong-password':
-                    errorMessage = 'Password errata';
-                    break;
-                case 'auth/invalid-email':
-                    errorMessage = 'Email non valida';
-                    break;
-                case 'auth/too-many-requests':
-                    errorMessage = 'Troppi tentativi. Riprova più tardi';
-                    break;
-            }
-            
-            showMessage(errorMessage, 'error');
+            showMessage('Errore durante il login: ' + error.message, 'error');
         });
 }
 
@@ -505,153 +521,60 @@ function handleRegister(e) {
     const phone = document.getElementById('register-phone').value;
     const address = document.getElementById('register-address').value;
     
-    if (!name || !email || !password) {
-        showMessage('Compila i campi obbligatori (Nome, Email, Password)', 'error');
-        return;
-    }
-    
-    if (password.length < 6) {
-        showMessage('La password deve essere di almeno 6 caratteri', 'error');
-        return;
-    }
-    
     console.log('Attempting registration for:', email);
     
     firebase.auth().createUserWithEmailAndPassword(email, password)
         .then((userCredential) => {
             console.log('Registration successful:', userCredential.user.email);
             
-            // Update user profile with name
+            // Update user profile
             return userCredential.user.updateProfile({
                 displayName: name
             }).then(() => {
-                // Save additional user data to database
-                return firebase.database().ref('users/' + userCredential.user.uid).set({
+                // Save additional user data
+                return db.ref('users/' + userCredential.user.uid).set({
                     name: name,
                     email: email,
-                    phone: phone || '',
-                    address: address || '',
-                    createdAt: firebase.database.ServerValue.TIMESTAMP
+                    phone: phone,
+                    address: address,
+                    createdAt: new Date().toISOString()
                 });
             });
         })
         .then(() => {
+            closeLoginModal();
             showMessage('Registrazione completata con successo!', 'success');
-            
-            // Reset form
-            document.getElementById('register-form-element').reset();
-            
-            // Redirect to home
-            showSection('home');
         })
         .catch((error) => {
             console.error('Registration error:', error);
-            let errorMessage = 'Errore durante la registrazione';
-            
-            switch (error.code) {
-                case 'auth/email-already-in-use':
-                    errorMessage = 'Email già in uso';
-                    break;
-                case 'auth/invalid-email':
-                    errorMessage = 'Email non valida';
-                    break;
-                case 'auth/weak-password':
-                    errorMessage = 'Password troppo debole';
-                    break;
-            }
-            
-            showMessage(errorMessage, 'error');
+            showMessage('Errore durante la registrazione: ' + error.message, 'error');
         });
 }
 
 function handleLogout() {
-    firebase.auth().signOut().then(() => {
-        console.log('User logged out');
-        showMessage('Logout effettuato con successo', 'success');
-        showSection('home');
-    }).catch((error) => {
-        console.error('Logout error:', error);
-        showMessage('Errore durante il logout', 'error');
-    });
-}
-
-function updateAuthUI(isLoggedIn) {
-    const authLink = document.getElementById('auth-link');
-    if (!authLink) return;
-    
-    if (isLoggedIn && currentUser) {
-        authLink.innerHTML = `
-            <i class="fas fa-user"></i> ${currentUser.displayName || currentUser.email}
-            <div class="user-dropdown" id="user-dropdown">
-                <div class="dropdown-item" onclick="showUserProfile()">
-                    <i class="fas fa-user-circle"></i> Profilo
-                </div>
-                <div class="dropdown-item" onclick="showSection('carrello')">
-                    <i class="fas fa-shopping-cart"></i> Carrello
-                </div>
-                <div class="dropdown-item" onclick="handleLogout()">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </div>
-            </div>
-        `;
-        
-        authLink.onclick = function(e) {
-            e.preventDefault();
-            showUserMenu();
-        };
-    } else {
-        authLink.innerHTML = '<i class="fas fa-user"></i> Accedi';
-        authLink.onclick = function(e) {
-            e.preventDefault();
-            showSection('accedi');
-        };
-    }
-}
-
-function showUserMenu() {
-    const dropdown = document.getElementById('user-dropdown');
-    if (dropdown) {
-        dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-        
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function closeDropdown(e) {
-            if (!e.target.closest('#auth-link')) {
-                dropdown.style.display = 'none';
-                document.removeEventListener('click', closeDropdown);
-            }
-        });
-    }
-}
-
-function showUserProfile() {
-    // Hide user menu
-    const dropdown = document.getElementById('user-dropdown');
-    if (dropdown) dropdown.style.display = 'none';
-    
-    // Show user profile (you can implement a profile section)
-    showMessage('Funzionalità profilo in sviluppo', 'info');
-}
-
-function loadUserProfile() {
-    if (!currentUser) return;
-    
-    firebase.database().ref('users/' + currentUser.uid).once('value')
-        .then((snapshot) => {
-            const userData = snapshot.val();
-            if (userData) {
-                console.log('User profile loaded:', userData);
-                // You can use this data to populate user profile UI
-            }
+    firebase.auth().signOut()
+        .then(() => {
+            console.log('Logout successful');
+            showMessage('Logout effettuato con successo!', 'success');
         })
         .catch((error) => {
-            console.error('Error loading user profile:', error);
+            console.error('Logout error:', error);
+            showMessage('Errore durante il logout: ' + error.message, 'error');
         });
 }
 
+function toggleUserMenu() {
+    const dropdown = document.getElementById('user-dropdown');
+    if (dropdown) {
+        dropdown.classList.toggle('hidden');
+    }
+}
+
+// Checkout function
 function handleCheckout() {
     if (!currentUser) {
-        showMessage('Devi effettuare il login per procedere', 'error');
-        showSection('accedi');
+        showMessage('Devi effettuare il login per procedere al checkout', 'error');
+        openLoginModal();
         return;
     }
     
@@ -660,157 +583,142 @@ function handleCheckout() {
         return;
     }
     
-    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    
+    // Create order
     const order = {
         userId: currentUser.uid,
         userEmail: currentUser.email,
         items: cart,
-        total: total,
+        total: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
         status: 'pending',
-        createdAt: firebase.database.ServerValue.TIMESTAMP
+        createdAt: new Date().toISOString()
     };
     
-    firebase.database().ref('orders').push(order)
+    // Save order to Firebase
+    db.ref('orders').push(order)
         .then(() => {
-            showMessage('Ordine inviato con successo!', 'success');
+            console.log('Order created successfully');
             cart = [];
             updateCartUI();
-            saveCart();
-            showSection('home');
+            showMessage('Ordine inviato con successo! Ti contatteremo presto.', 'success');
         })
         .catch((error) => {
             console.error('Error creating order:', error);
-            showMessage('Errore durante l\'invio dell\'ordine', 'error');
+            showMessage('Errore durante l\'invio dell\'ordine: ' + error.message, 'error');
         });
 }
 
-function saveCart() {
-    localStorage.setItem('mirella_cart', JSON.stringify(cart));
-}
-
-function loadCart() {
-    const savedCart = localStorage.getItem('mirella_cart');
-    if (savedCart) {
-        try {
-            cart = JSON.parse(savedCart);
-            updateCartUI();
-        } catch (error) {
-            console.error('Error loading cart:', error);
-            cart = [];
-        }
+// Show message function
+function showMessage(text, type = 'info') {
+    // Remove existing messages
+    const existingMessages = document.querySelectorAll('.message');
+    existingMessages.forEach(msg => msg.remove());
+    
+    // Create new message
+    const message = document.createElement('div');
+    message.className = `message ${type}`;
+    message.textContent = text;
+    
+    // Insert at top of main content
+    const main = document.querySelector('main');
+    if (main) {
+        main.insertBefore(message, main.firstChild);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (message.parentNode) {
+                message.remove();
+            }
+        }, 5000);
     }
 }
 
-function showMessage(message, type = 'success') {
-    const messageContainer = document.getElementById('message-container');
-    if (!messageContainer) {
-        console.log('Message:', message, '(Type:', type, ')');
-        return;
-    }
-    
-    const messageElement = document.createElement('div');
-    messageElement.className = `message message-${type}`;
-    messageElement.innerHTML = `
-        <span>${message}</span>
-        <button onclick="this.parentElement.remove()" class="message-close">
-            <i class="fas fa-times"></i>
-        </button>
-    `;
-    
-    messageContainer.appendChild(messageElement);
-    
-    // Auto remove after 5 seconds
-    setTimeout(() => {
-        if (messageElement.parentElement) {
-            messageElement.remove();
-        }
-    }, 5000);
-}
-
+// Initialize sample data if Firebase is empty
 function initializeSampleData() {
-    console.log('Checking for existing data...');
+    console.log('Initializing sample data...');
     
-    // Check if categories exist
-    firebase.database().ref('categories').once('value')
-        .then((snapshot) => {
-            if (!snapshot.exists()) {
-                console.log('No categories found, creating sample categories...');
-                
-                const sampleCategories = {
-                    'frutta': {
-                        name: 'Frutta',
-                        description: 'Frutta fresca di stagione',
-                        image: 'immagini/FruttaCopilot_20250906_124031.png'
-                    },
-                    'verdura': {
-                        name: 'Verdura',
-                        description: 'Verdure fresche dell\'orto',
-                        image: 'immagini/VerduraCopilot_20250906_124758.png'
-                    },
-                    'gastronomia': {
-                        name: 'Gastronomia',
-                        description: 'Prodotti gastronomici artigianali',
-                        image: 'immagini/GastronomiaCopilot_20250906_125746.png'
-                    },
-                    'varie': {
-                        name: 'Varie',
-                        description: 'Altri prodotti selezionati',
-                        image: 'immagini/VarieCopilot_20250906_142429.png'
-                    }
-                };
-                
-                return firebase.database().ref('categories').set(sampleCategories);
-            } else {
-                console.log('Categories already exist');
-            }
-        })
-        .then(() => {
-            // Check if products exist
-            return firebase.database().ref('products').once('value');
-        })
-        .then((snapshot) => {
-            if (!snapshot.exists()) {
-                console.log('No products found, creating sample products...');
-                
-                const sampleProducts = {
-                    'pomodoro-occhio-bue': {
-                        name: 'Pomodoro Occhio di Bue',
-                        description: 'Pomodori grandi e succosi, perfetti per insalate',
-                        price: 3.50,
-                        unit: 'kg',
-                        categoryId: 'verdura',
-                        image: 'immagini/PomodoroOcchioBueCopilot_20250906_151807.png',
-                        available: true
-                    },
-                    'melanzane-nere': {
-                        name: 'Melanzane Nere',
-                        description: 'Melanzane nere di prima qualità',
-                        price: 2.80,
-                        unit: 'kg',
-                        categoryId: 'verdura',
-                        image: 'immagini/MelanzaneNereCopilot_20250906_154038.png',
-                        available: true
-                    },
-                    'insalata-lattuga': {
-                        name: 'Insalata Lattuga',
-                        description: 'Lattuga fresca e croccante',
-                        price: 1.50,
-                        unit: 'cespo',
-                        categoryId: 'verdura',
-                        image: 'immagini/InsalataLattugaOriCopilot_20250906_152254.png',
-                        available: true
-                    }
-                };
-                
-                return firebase.database().ref('products').set(sampleProducts);
-            } else {
-                console.log('Products already exist');
-            }
-        })
-        .catch((error) => {
-            console.error('Error initializing sample data:', error);
+    const sampleCategories = [
+        {
+            id: 'frutta',
+            name: 'Frutta',
+            description: 'Frutta fresca di stagione',
+            image: 'immagini/FruttaCopilot_20250906_124031.png'
+        },
+        {
+            id: 'verdura',
+            name: 'Verdura',
+            description: 'Verdure fresche dell\'orto',
+            image: 'immagini/VerduraCopilot_20250906_124758.png'
+        },
+        {
+            id: 'gastronomia',
+            name: 'Gastronomia',
+            description: 'Prodotti gastronomici artigianali',
+            image: 'immagini/GastronomiaCopilot_20250906_125746.png'
+        },
+        {
+            id: 'varie',
+            name: 'Varie',
+            description: 'Altri prodotti selezionati',
+            image: 'immagini/VarieCopilot_20250906_142429.png'
+        }
+    ];
+    
+    const sampleProducts = [
+        {
+            id: 'pomodoro-occhio-bue',
+            name: 'Pomodoro Occhio di Bue',
+            categoryId: 'verdura',
+            price: 3.50,
+            unit: 'kg',
+            description: 'Pomodori grandi e saporiti, perfetti per insalate',
+            image: 'immagini/PomodoroOcchioBueCopilot_20250906_151807.png',
+            available: true
+        },
+        {
+            id: 'melanzane-nere',
+            name: 'Melanzane Nere',
+            categoryId: 'verdura',
+            price: 2.80,
+            unit: 'kg',
+            description: 'Melanzane nere lucide, ideali per ogni preparazione',
+            image: 'immagini/MelanzaneNereCopilot_20250906_154038.png',
+            available: true
+        },
+        {
+            id: 'insalata-lattuga',
+            name: 'Insalata Lattuga',
+            categoryId: 'verdura',
+            price: 1.50,
+            unit: 'cespo',
+            description: 'Lattuga fresca e croccante',
+            image: 'immagini/InsalataLattugaOriCopilot_20250906_152254.png',
+            available: true
+        }
+    ];
+    
+    // Set sample data
+    categories = sampleCategories;
+    products = sampleProducts;
+    
+    // Render the data
+    renderCategories();
+    updateCategoryFilter();
+    renderProducts();
+    
+    console.log('Sample data initialized');
+    
+    // Save to Firebase if available
+    if (db) {
+        const updates = {};
+        sampleCategories.forEach(category => {
+            updates[`categories/${category.id}`] = category;
         });
-    
-    console.log('Sample data initialization completed');
+        sampleProducts.forEach(product => {
+            updates[`products/${product.id}`] = product;
+        });
+        
+        db.ref().update(updates)
+            .then(() => console.log('Sample data saved to Firebase'))
+            .catch(error => console.error('Error saving sample data:', error));
+    }
 }
