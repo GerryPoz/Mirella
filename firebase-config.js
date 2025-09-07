@@ -12,3 +12,9 @@ const firebaseConfig = {
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
+
+// Riferimenti ai servizi Firebase
+const database = firebase.database();
+
+// Esporta per uso globale
+window.db = database;
