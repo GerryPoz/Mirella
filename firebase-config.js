@@ -1,3 +1,10 @@
+// Import the functions you need from the SDKs you need
+import { initializeApp } from 'firebase/app';
+import { getDatabase } from 'firebase/database';
+import { getAuth } from 'firebase/auth';
+import { getStorage } from 'firebase/storage';
+
+// Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyA7Wkf7Xu6873kb82nqWdS_IVFvxC1TNQg",
   authDomain: "mirella-dd7ff.firebaseapp.com",
@@ -9,15 +16,17 @@ const firebaseConfig = {
   measurementId: "G-RXWQS623VF"
 };
 
-// Inizializza Firebase
-firebase.initializeApp(firebaseConfig);
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
 
-// Riferimenti ai servizi Firebase
-const database = firebase.database();
-const auth = firebase.auth();
-const storage = firebase.storage();
+// Initialize Firebase services
+const database = getDatabase(app);
+const auth = getAuth(app);
+const storage = getStorage(app);
 
-// Esporta per uso globale
+// Export for use in other files
 window.db = database;
 window.auth = auth;
 window.storage = storage;
+
+export { database, auth, storage };
