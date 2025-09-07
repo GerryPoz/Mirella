@@ -45,8 +45,8 @@ function initializeApp() {
 function setupEventListeners() {
     console.log('Setting up event listeners...');
     
-    // Navigation
-    const navLinks = document.querySelectorAll('.nav-link');
+    // Navigation links (escludi link speciali)
+    const navLinks = document.querySelectorAll('.nav-link:not(#login-link):not(#user-menu):not(#logout-link):not(#orders-link)');
     navLinks.forEach(link => {
         link.addEventListener('click', handleNavigation);
     });
@@ -57,11 +57,13 @@ function setupEventListeners() {
         menuToggle.addEventListener('click', toggleMobileMenu);
     }
     
-    // Login modal
+    // Login modal - GESTIONE SPECIFICA
     const loginLink = document.getElementById('login-link');
     if (loginLink) {
         loginLink.addEventListener('click', (e) => {
             e.preventDefault();
+            e.stopPropagation(); // Previeni altri handler
+            console.log('Login link clicked');
             openLoginModal();
         });
     }
@@ -89,6 +91,8 @@ function setupEventListeners() {
     if (showRegisterLink) {
         showRegisterLink.addEventListener('click', (e) => {
             e.preventDefault();
+            e.stopPropagation();
+            console.log('Show register clicked');
             showRegisterForm();
         });
     }
@@ -96,6 +100,8 @@ function setupEventListeners() {
     if (showLoginLink) {
         showLoginLink.addEventListener('click', (e) => {
             e.preventDefault();
+            e.stopPropagation();
+            console.log('Show login clicked');
             showLoginForm();
         });
     }
@@ -106,10 +112,12 @@ function setupEventListeners() {
     
     if (loginForm) {
         loginForm.addEventListener('submit', handleLogin);
+        console.log('Login form listener added');
     }
     
     if (registerForm) {
         registerForm.addEventListener('submit', handleRegister);
+        console.log('Register form listener added');
     }
     
     // Search and filter - CORREZIONE QUI
@@ -176,6 +184,13 @@ function setupEventListeners() {
 function handleNavigation(e) {
     e.preventDefault();
     
+    // Escludi link speciali (login, register, logout, etc.)
+    const specialLinks = ['login-link', 'show-register', 'show-login', 'logout-link', 'orders-link', 'user-menu'];
+    if (specialLinks.includes(e.target.id)) {
+        console.log('Special link clicked, skipping navigation:', e.target.id);
+        return;
+    }
+    
     // Controllo sicuro per l'attributo href
     const href = e.target.getAttribute('href');
     if (!href || href === '#' || !href.startsWith('#')) {
@@ -189,7 +204,7 @@ function handleNavigation(e) {
         return;
     }
     
-    console.log('Navigating to section:', targetId); // Debug
+    console.log('Navigating to section:', targetId);
     showSection(targetId);
     
     // Update active nav link
@@ -555,11 +570,23 @@ function updateUserUI() {
 
 function handleLogin(e) {
     e.preventDefault();
+    console.log('Login form submitted');
     
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
     
     console.log('Attempting login for:', email);
+    
+    if (!email || !password) {
+        showMessage('Inserisci email e password', 'error');
+        return;
+    }
+    
+    // Mostra loading
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Accesso in corso...';
+    submitBtn.disabled = true;
     
     firebase.auth().signInWithEmailAndPassword(email, password)
         .then((userCredential) => {
@@ -569,7 +596,31 @@ function handleLogin(e) {
         })
         .catch((error) => {
             console.error('Login error:', error);
-            showMessage('Errore durante il login: ' + error.message, 'error');
+            let errorMessage = 'Errore durante il login';
+            
+            switch(error.code) {
+                case 'auth/user-not-found':
+                    errorMessage = 'Utente non trovato';
+                    break;
+                case 'auth/wrong-password':
+                    errorMessage = 'Password errata';
+                    break;
+                case 'auth/invalid-email':
+                    errorMessage = 'Email non valida';
+                    break;
+                case 'auth/too-many-requests':
+                    errorMessage = 'Troppi tentativi. Riprova più tardi';
+                    break;
+                default:
+                    errorMessage = error.message;
+            }
+            
+            showMessage(errorMessage, 'error');
+        })
+        .finally(() => {
+            // Ripristina il pulsante
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
         });
 }
 
