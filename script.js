@@ -13,6 +13,22 @@ document.addEventListener('DOMContentLoaded', function() {
 function initializeApp() {
     console.log('Initializing app...');
     
+    // Verifica che tutte le funzioni necessarie siano definite
+    if (typeof setupEventListeners !== 'function') {
+        console.error('setupEventListeners function is not defined');
+        return;
+    }
+    
+    if (typeof loadData !== 'function') {
+        console.error('loadData function is not defined');
+        return;
+    }
+    
+    if (typeof loadCart !== 'function') {
+        console.error('loadCart function is not defined');
+        return;
+    }
+    
     setupEventListeners();
     loadData();
     loadCart();
