@@ -80,6 +80,183 @@ nav a.active {
     transform: translateY(-2px);
 }
 
+/* Chi Siamo Section - Stili migliorati */
+#chi-siamo {
+    padding: 4rem 2rem;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+}
+
+#chi-siamo h2 {
+    text-align: center;
+    color: #2e7d32;
+    font-size: 2.5rem;
+    margin-bottom: 3rem;
+    position: relative;
+}
+
+#chi-siamo h2::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    border-radius: 2px;
+}
+
+.about-content {
+    max-width: 1000px;
+    margin: 0 auto;
+    display: grid;
+    gap: 3rem;
+}
+
+.about-content > p:first-of-type {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    font-size: 1.2rem;
+    line-height: 1.8;
+    color: #555;
+    text-align: center;
+    border-left: 5px solid #4caf50;
+    position: relative;
+    overflow: hidden;
+}
+
+.about-content > p:first-of-type::before {
+    content: '🌱';
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    font-size: 3rem;
+    opacity: 0.1;
+    transform: rotate(15deg);
+}
+
+.about-sections {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.about-content h3 {
+    color: #2e7d32;
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.about-content h3::before {
+    content: '🎯';
+    font-size: 1.5rem;
+}
+
+.about-content h3:last-of-type::before {
+    content: '💎';
+}
+
+.mission-section,
+.values-section {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    border-top: 4px solid #4caf50;
+}
+
+.mission-section:hover,
+.values-section:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+}
+
+.mission-section p {
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: #555;
+    margin-bottom: 0;
+}
+
+.about-content ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.about-content li {
+    background: #f8f9fa;
+    margin-bottom: 1rem;
+    padding: 1.2rem;
+    border-radius: 12px;
+    border-left: 4px solid #4caf50;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.about-content li:hover {
+    background: #e8f5e8;
+    transform: translateX(5px);
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.2);
+}
+
+.about-content li::before {
+    content: '✓';
+    background: #4caf50;
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.about-content li strong {
+    color: #2e7d32;
+    font-weight: 600;
+}
+
+/* Responsive per Chi Siamo */
+@media (max-width: 768px) {
+    #chi-siamo {
+        padding: 2rem 1rem;
+    }
+    
+    #chi-siamo h2 {
+        font-size: 2rem;
+    }
+    
+    .about-sections {
+        grid-template-columns: 1fr;
+    }
+    
+    .about-content > p:first-of-type,
+    .mission-section,
+    .values-section {
+        padding: 1.5rem;
+    }
+    
+    .about-content li {
+        padding: 1rem;
+        flex-direction: column;
+        text-align: center;
+    }
+}
+
 /* User menu */
 #user-menu {
     position: relative;
