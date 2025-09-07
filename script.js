@@ -230,63 +230,39 @@ function loadData() {
         return;
     }
     
-    // Load categories and products from existing database
-    db.ref().on('value', (snapshot) => {
-        try {
-            const data = snapshot.val();
-            console.log('Data loaded from Firebase:', data);
-            
-            if (data) {
-                // Load categories - convert Firebase object to array
-                if (data.categories) {
-                    categories = Object.keys(data.categories).map(key => ({
-                        id: key,
-                        ...data.categories[key]
-                    }));
-                } else {
-                    categories = [];
-                }
-                
-                // Load products - convert Firebase object to array
-                if (data.products) {
-                    products = Object.keys(data.products).map(key => ({
-                        id: key,
-                        ...data.products[key]
-                    }));
-                } else {
-                    products = [];
-                }
-                
-                console.log('Categories loaded:', categories.length);
-                console.log('Products loaded:', products.length);
-                
-                // Render the loaded data
-                renderCategories();
-                updateCategoryFilter();
-                renderProducts();
-            } else {
-                console.log('No data found in database');
-                categories = [];
-                products = [];
-                renderCategories();
-                updateCategoryFilter();
-                renderProducts();
-            }
-        } catch (error) {
-            console.error('Error processing data:', error);
-            categories = [];
-            products = [];
-            renderCategories();
-            updateCategoryFilter();
-            renderProducts();
-        }
-    }, (error) => {
-        console.error('Error loading data:', error);
+    // Carica categorie - stesso metodo di admin.js
+    db.ref('categories').on('value', (snapshot) => {
         categories = [];
-        products = [];
+        if (snapshot.exists()) {
+            snapshot.forEach((child) => {
+                categories.push({
+                    id: child.key,
+                    ...child.val()
+                });
+            });
+        }
+        console.log('Categories loaded:', categories.length);
         renderCategories();
         updateCategoryFilter();
+    }, (error) => {
+        console.error('Error loading categories:', error);
+    });
+    
+    // Carica prodotti - stesso metodo di admin.js
+    db.ref('products').on('value', (snapshot) => {
+        products = [];
+        if (snapshot.exists()) {
+            snapshot.forEach((child) => {
+                products.push({
+                    id: child.key,
+                    ...child.val()
+                });
+            });
+        }
+        console.log('Products loaded:', products.length);
         renderProducts();
+    }, (error) => {
+        console.error('Error loading products:', error);
     });
 }
 
