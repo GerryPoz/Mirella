@@ -20,6 +20,6 @@ const auth = firebase.auth();
 // const storage = firebase.storage();
 
 // Make available globally
-window.db = database;
-window.auth = auth;
+//window.db = database;
+//window.auth = auth;
 // window.storage = storage;
