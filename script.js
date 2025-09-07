@@ -179,16 +179,17 @@ function handleNavigation(e) {
     // Controllo sicuro per l'attributo href
     const href = e.target.getAttribute('href');
     if (!href || href === '#' || !href.startsWith('#')) {
-        console.log('Invalid href:', href);
+        console.log('Invalid href:', href, 'on element:', e.target);
         return;
     }
     
     const targetId = href.substring(1);
     if (!targetId) {
-        console.log('Empty target ID');
+        console.log('Empty target ID from href:', href);
         return;
     }
     
+    console.log('Navigating to section:', targetId); // Debug
     showSection(targetId);
     
     // Update active nav link
