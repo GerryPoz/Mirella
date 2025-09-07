@@ -3,477 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Azienda Agricola Mirella - Prodotti Freschi e Genuini</title>
+    <title>Mirella Ortofrutta - Prodotti Freschi e Genuini</title>
     <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-        }
-
-        /* Header e Navigation */
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 1rem 0;
-            position: fixed;
-            width: 100%;
-            top: 0;
-            z-index: 1000;
-            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
-        }
-
-        .nav-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 2rem;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-
-        .logo img {
-            width: 40px;
-            height: 40px;
-            margin-right: 10px;
-            border-radius: 50%;
-        }
-
-        .nav-menu {
-            display: flex;
-            list-style: none;
-            gap: 2rem;
-        }
-
-        .nav-item {
-            position: relative;
-        }
-
-        .nav-link {
-            color: white;
-            text-decoration: none;
-            padding: 0.5rem 1rem;
-            border-radius: 25px;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .nav-link:hover, .nav-link.active {
-            background: rgba(255,255,255,0.2);
-            transform: translateY(-2px);
-        }
-
-        .cart-badge {
-            background: #ff4757;
-            color: white;
-            border-radius: 50%;
-            padding: 2px 6px;
-            font-size: 0.8rem;
-            position: absolute;
-            top: -5px;
-            right: -5px;
-        }
-
-        .mobile-toggle {
-            display: none;
-            flex-direction: column;
-            cursor: pointer;
-        }
-
-        .mobile-toggle span {
-            width: 25px;
-            height: 3px;
-            background: white;
-            margin: 3px 0;
-            transition: 0.3s;
-        }
-
-        /* Main Content */
-        .main-content {
-            margin-top: 80px;
-            min-height: calc(100vh - 80px);
-        }
-
-        .section {
-            display: none;
-            padding: 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .section.active {
-            display: block;
-        }
-
-        /* Hero Section */
-        .hero {
-            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('Casale1.jpg');
-            background-size: cover;
-            background-position: center;
-            height: 60vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            color: white;
-            border-radius: 15px;
-            margin-bottom: 3rem;
-        }
-
-        .hero-content h1 {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-        }
-
-        .hero-content p {
-            font-size: 1.2rem;
-            margin-bottom: 2rem;
-        }
-
-        .cta-button {
-            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
-            color: white;
-            padding: 1rem 2rem;
-            border: none;
-            border-radius: 50px;
-            font-size: 1.1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .cta-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-        }
-
-        /* Cards */
-        .cards-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            margin: 2rem 0;
-        }
-
-        .card {
-            background: white;
-            border-radius: 15px;
-            padding: 1.5rem;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-        }
-
-        .card-image {
-            width: 100%;
-            height: 200px;
-            background: #f8f9fa;
-            border-radius: 10px;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        .card-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .card-image .placeholder {
-            color: #6c757d;
-            font-size: 3rem;
-        }
-
-        .card h3 {
-            color: #2c3e50;
-            margin-bottom: 0.5rem;
-        }
-
-        .card p {
-            color: #6c757d;
-            margin-bottom: 1rem;
-        }
-
-        .price {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #27ae60;
-            margin-bottom: 1rem;
-        }
-
-        .btn {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            width: 100%;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-
-        .btn:disabled {
-            background: #95a5a6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        /* Auth Forms */
-        .auth-container {
-            max-width: 400px;
-            margin: 2rem auto;
-            background: white;
-            padding: 2rem;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        }
-
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 0.75rem;
-            border: 2px solid #e9ecef;
-            border-radius: 10px;
-            font-size: 1rem;
-            transition: border-color 0.3s ease;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        /* Cart */
-        .cart-item {
-            background: white;
-            padding: 1rem;
-            border-radius: 10px;
-            margin-bottom: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        .quantity-controls {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .quantity-btn {
-            background: #667eea;
-            color: white;
-            border: none;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            cursor: pointer;
-        }
-
-        .cart-total {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 10px;
-            text-align: center;
-            margin-top: 2rem;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-        }
-
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 2000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(5px);
-        }
-
-        .modal-content {
-            background: white;
-            margin: 5% auto;
-            padding: 2rem;
-            border-radius: 15px;
-            width: 90%;
-            max-width: 500px;
-            position: relative;
-        }
-
-        .close {
-            position: absolute;
-            right: 1rem;
-            top: 1rem;
-            font-size: 2rem;
-            cursor: pointer;
-            color: #999;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .nav-menu {
-                position: fixed;
-                left: -100%;
-                top: 70px;
-                flex-direction: column;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                width: 100%;
-                text-align: center;
-                transition: 0.3s;
-                padding: 2rem 0;
-            }
-
-            .nav-menu.active {
-                left: 0;
-            }
-
-            .mobile-toggle {
-                display: flex;
-            }
-
-            .hero-content h1 {
-                font-size: 2rem;
-            }
-
-            .cards-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .section-title {
-            text-align: center;
-            font-size: 2.5rem;
-            color: #2c3e50;
-            margin-bottom: 2rem;
-            position: relative;
-        }
-
-        .section-title::after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100px;
-            height: 3px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 2px;
-        }
-
-        .filters {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-        }
-
-        .filters input, .filters select {
-            padding: 0.75rem;
-            border: 2px solid #e9ecef;
-            border-radius: 10px;
-            font-size: 1rem;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 3rem;
-            color: #6c757d;
-        }
-
-        .empty-state i {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-            color: #dee2e6;
-        }
-    </style>
 </head>
 <body>
+    <!-- Header -->
     <header class="header">
         <nav class="nav-container">
             <div class="logo">
-                <img src="ellisse1.png" alt="Logo">
-                <span>Azienda Agricola Mirella</span>
+                <i class="fas fa-leaf"></i>
+                <span>Mirella Ortofrutta</span>
             </div>
-            
             <ul class="nav-menu" id="nav-menu">
                 <li class="nav-item">
                     <a href="#home" class="nav-link active">
-                        <i class="fas fa-home"></i>
-                        Home
+                        <i class="fas fa-home"></i> Home
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#products" class="nav-link">
-                        <i class="fas fa-leaf"></i>
-                        Prodotti
+                    <a href="#chi-siamo" class="nav-link">
+                        <i class="fas fa-info-circle"></i> Chi Siamo
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#cart" class="nav-link">
-                        <i class="fas fa-shopping-cart"></i>
-                        Carrello
-                        <span class="cart-badge" id="cart-badge">0</span>
+                    <a href="#prodotti" class="nav-link">
+                        <i class="fas fa-shopping-basket"></i> Prodotti
                     </a>
                 </li>
-                <li class="nav-item" id="login-nav">
-                    <a href="#login" class="nav-link">
-                        <i class="fas fa-user"></i>
-                        Accedi
+                <li class="nav-item">
+                    <a href="#carrello" class="nav-link">
+                        <i class="fas fa-shopping-cart"></i> Carrello
+                        <span class="cart-badge" id="cart-count">0</span>
                     </a>
                 </li>
-                <li class="nav-item" id="profile-nav" style="display: none;">
-                    <a href="#profile" class="nav-link">
-                        <i class="fas fa-user-circle"></i>
-                        Profilo
-                    </a>
-                </li>
-                <li class="nav-item" id="logout-nav" style="display: none;">
-                    <a href="#logout" class="nav-link">
-                        <i class="fas fa-sign-out-alt"></i>
-                        Esci
+                <li class="nav-item">
+                    <a href="#accedi" class="nav-link" id="auth-link">
+                        <i class="fas fa-user"></i> Accedi
                     </a>
                 </li>
             </ul>
-            
             <div class="mobile-toggle" id="mobile-toggle">
                 <span></span>
                 <span></span>
@@ -482,174 +52,209 @@
         </nav>
     </header>
 
+    <!-- Main Content -->
     <main class="main-content">
         <!-- Home Section -->
         <section id="home" class="section active">
             <div class="hero">
                 <div class="hero-content">
-                    <h1>Benvenuti all'Azienda Agricola Mirella</h1>
-                    <p>Prodotti freschi e genuini direttamente dalla nostra terra</p>
-                    <a href="#products" class="cta-button">Scopri i Nostri Prodotti</a>
+                    <h1>Benvenuti da Mirella Ortofrutta</h1>
+                    <p>Prodotti freschi e genuini direttamente dal nostro orto</p>
+                    <button class="cta-button" onclick="showSection('prodotti')">
+                        <i class="fas fa-shopping-basket"></i>
+                        Scopri i nostri prodotti
+                    </button>
                 </div>
             </div>
             
-            <h2 class="section-title">Le Nostre Categorie</h2>
-            <div id="categories-grid" class="cards-grid"></div>
-            
-            <h2 class="section-title">Prodotti in Evidenza</h2>
-            <div id="featured-products" class="cards-grid"></div>
-        </section>
-
-        <!-- Products Section -->
-        <section id="products" class="section">
-            <h2 class="section-title">I Nostri Prodotti</h2>
-            
-            <div class="filters">
-                <input type="text" id="search-input" placeholder="🔍 Cerca prodotti...">
-                <select id="category-filter">
-                    <option value="">📂 Tutte le categorie</option>
-                </select>
-            </div>
-            
-            <div id="products-grid" class="cards-grid"></div>
-        </section>
-
-        <!-- Cart Section -->
-        <section id="cart" class="section">
-            <h2 class="section-title">Il Tuo Carrello</h2>
-            
-            <div id="cart-items">
-                <div class="empty-state">
-                    <i class="fas fa-shopping-cart"></i>
-                    <h3>Il carrello è vuoto</h3>
-                    <p>Aggiungi alcuni prodotti per iniziare!</p>
-                </div>
-            </div>
-            
-            <div class="cart-total" id="cart-total-section" style="display: none;">
-                <h3>Totale: €<span id="cart-total">0.00</span></h3>
-                <button id="checkout-btn" class="cta-button">Procedi all'Ordine</button>
-            </div>
-        </section>
-
-        <!-- Login Section -->
-        <section id="login" class="section">
-            <div class="auth-container">
-                <div id="login-form">
-                    <h2 style="text-align: center; margin-bottom: 2rem; color: #2c3e50;">Accedi al tuo Account</h2>
-                    
-                    <div class="form-group">
-                        <input type="email" id="login-email" placeholder="📧 Email" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <input type="password" id="login-password" placeholder="🔒 Password" required>
-                    </div>
-                    
-                    <button id="login-submit" class="btn" style="margin-bottom: 1rem;">Accedi</button>
-                    
-                    <p style="text-align: center;">
-                        Non hai un account? 
-                        <a href="#" id="show-register" style="color: #667eea; text-decoration: none;">Registrati qui</a>
-                    </p>
-                </div>
-                
-                <div id="register-form" style="display: none;">
-                    <h2 style="text-align: center; margin-bottom: 2rem; color: #2c3e50;">Crea un Account</h2>
-                    
-                    <div class="form-group">
-                        <input type="text" id="register-name" placeholder="👤 Nome completo" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <input type="email" id="register-email" placeholder="📧 Email" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <input type="tel" id="register-phone" placeholder="📱 Telefono">
-                    </div>
-                    
-                    <div class="form-group">
-                        <input type="text" id="register-address" placeholder="🏠 Indirizzo">
-                    </div>
-                    
-                    <div class="form-group">
-                        <input type="password" id="register-password" placeholder="🔒 Password" required>
-                    </div>
-                    
-                    <button id="register-submit" class="btn" style="margin-bottom: 1rem;">Registrati</button>
-                    
-                    <p style="text-align: center;">
-                        Hai già un account? 
-                        <a href="#" id="show-login" style="color: #667eea; text-decoration: none;">Accedi qui</a>
-                    </p>
+            <!-- Categories -->
+            <div class="container">
+                <h2>Le Nostre Categorie</h2>
+                <div class="categories-grid" id="categories-grid">
+                    <!-- Categories will be loaded here -->
                 </div>
             </div>
         </section>
 
-        <!-- Profile Section -->
-        <section id="profile" class="section">
-            <h2 class="section-title">Il Mio Profilo</h2>
-            
-            <div class="auth-container">
-                <h3 style="color: #2c3e50; margin-bottom: 1rem;">Informazioni Personali</h3>
-                
-                <div class="form-group">
-                    <input type="text" id="profile-name" placeholder="Nome completo" readonly>
-                </div>
-                
-                <div class="form-group">
-                    <input type="email" id="profile-email" placeholder="Email" readonly>
-                </div>
-                
-                <div class="form-group">
-                    <input type="tel" id="profile-phone" placeholder="Telefono" readonly>
-                </div>
-                
-                <div class="form-group">
-                    <input type="text" id="profile-address" placeholder="Indirizzo" readonly>
+        <!-- Chi Siamo Section -->
+        <section id="chi-siamo" class="section">
+            <div class="container">
+                <h2>Chi Siamo</h2>
+                <div class="about-content">
+                    <div class="about-text">
+                        <h3>La Storia di Mirella Ortofrutta</h3>
+                        <p>Da oltre 20 anni, Mirella Ortofrutta è sinonimo di qualità e freschezza. La nostra azienda agricola familiare si dedica alla coltivazione di frutta e verdura seguendo metodi tradizionali e sostenibili.</p>
+                        <p>Ogni prodotto viene raccolto al momento giusto per garantire il massimo della freschezza e del sapore. La nostra passione per l'agricoltura si riflette nella cura che dedichiamo ad ogni singolo prodotto.</p>
+                        <div class="features">
+                            <div class="feature">
+                                <i class="fas fa-leaf"></i>
+                                <h4>Prodotti Biologici</h4>
+                                <p>Coltivazione naturale senza pesticidi</p>
+                            </div>
+                            <div class="feature">
+                                <i class="fas fa-truck"></i>
+                                <h4>Consegna Fresca</h4>
+                                <p>Dal campo alla tua tavola in 24 ore</p>
+                            </div>
+                            <div class="feature">
+                                <i class="fas fa-heart"></i>
+                                <h4>Passione Familiare</h4>
+                                <p>Tradizione e amore per la terra</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            
-            <div style="margin-top: 2rem;">
-                <h3 class="section-title">I Miei Ordini</h3>
-                <div id="orders-history"></div>
+        </section>
+
+        <!-- Prodotti Section -->
+        <section id="prodotti" class="section">
+            <div class="container">
+                <h2>I Nostri Prodotti</h2>
+                
+                <!-- Filters -->
+                <div class="filters">
+                    <select id="category-filter">
+                        <option value="">Tutte le categorie</option>
+                    </select>
+                    <input type="text" id="search-input" placeholder="Cerca prodotti...">
+                    <button id="search-button">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                
+                <!-- Products Grid -->
+                <div class="products-grid" id="products-grid">
+                    <!-- Products will be loaded here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Carrello Section -->
+        <section id="carrello" class="section">
+            <div class="container">
+                <h2>Il Tuo Carrello</h2>
+                <div id="cart-content">
+                    <div class="empty-cart">
+                        <i class="fas fa-shopping-cart"></i>
+                        <p>Il tuo carrello è vuoto</p>
+                        <button onclick="showSection('prodotti')" class="btn-primary">
+                            Inizia a fare la spesa
+                        </button>
+                    </div>
+                </div>
+                <div id="cart-summary" class="cart-summary" style="display: none;">
+                    <div class="cart-items" id="cart-items"></div>
+                    <div class="cart-total">
+                        <h3>Totale: €<span id="cart-total">0.00</span></h3>
+                        <button id="checkout-button" class="btn-primary">
+                            <i class="fas fa-credit-card"></i>
+                            Procedi all'ordine
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Accedi Section -->
+        <section id="accedi" class="section">
+            <div class="container">
+                <div class="auth-container">
+                    <!-- Login Form -->
+                    <div id="login-form" class="auth-form">
+                        <h2>Accedi</h2>
+                        <form id="login-form-element">
+                            <div class="form-group">
+                                <label for="login-email">Email:</label>
+                                <input type="email" id="login-email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="login-password">Password:</label>
+                                <input type="password" id="login-password" required>
+                            </div>
+                            <button type="submit" class="btn-primary">
+                                <i class="fas fa-sign-in-alt"></i>
+                                Accedi
+                            </button>
+                        </form>
+                        <p class="auth-switch">
+                            Non hai un account? 
+                            <a href="#" id="show-register">Registrati</a>
+                        </p>
+                    </div>
+
+                    <!-- Register Form -->
+                    <div id="register-form" class="auth-form" style="display: none;">
+                        <h2>Registrati</h2>
+                        <form id="register-form-element">
+                            <div class="form-group">
+                                <label for="register-name">Nome:</label>
+                                <input type="text" id="register-name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="register-email">Email:</label>
+                                <input type="email" id="register-email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="register-password">Password:</label>
+                                <input type="password" id="register-password" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="register-phone">Telefono:</label>
+                                <input type="tel" id="register-phone">
+                            </div>
+                            <div class="form-group">
+                                <label for="register-address">Indirizzo:</label>
+                                <textarea id="register-address" rows="3"></textarea>
+                            </div>
+                            <button type="submit" class="btn-primary">
+                                <i class="fas fa-user-plus"></i>
+                                Registrati
+                            </button>
+                        </form>
+                        <p class="auth-switch">
+                            Hai già un account? 
+                            <a href="#" id="show-login">Accedi</a>
+                        </p>
+                    </div>
+                </div>
             </div>
         </section>
     </main>
 
-    <!-- Checkout Modal -->
-    <div id="checkout-modal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2 style="margin-bottom: 2rem; color: #2c3e50;">Completa l'Ordine</h2>
-            
-            <form id="checkout-form">
-                <div class="form-group">
-                    <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Indirizzo di Consegna:</label>
-                    <textarea id="delivery-address" placeholder="Inserisci l'indirizzo di consegna" required 
-                              style="width: 100%; padding: 0.75rem; border: 2px solid #e9ecef; border-radius: 10px; min-height: 80px; resize: vertical;"></textarea>
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Mirella Ortofrutta</h3>
+                    <p>Prodotti freschi e genuini dal 2004</p>
                 </div>
-                
-                <div class="form-group">
-                    <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Note aggiuntive:</label>
-                    <textarea id="delivery-notes" placeholder="Note per l'ordine (opzionale)" 
-                              style="width: 100%; padding: 0.75rem; border: 2px solid #e9ecef; border-radius: 10px; min-height: 60px; resize: vertical;"></textarea>
+                <div class="footer-section">
+                    <h3>Contatti</h3>
+                    <p><i class="fas fa-phone"></i> +39 123 456 7890</p>
+                    <p><i class="fas fa-envelope"></i> info@mirellaortofrutta.it</p>
                 </div>
-                
-                <div id="order-summary" style="background: #f8f9fa; padding: 1rem; border-radius: 10px; margin: 1rem 0;"></div>
-                
-                <button type="submit" class="cta-button" style="width: 100%;">Conferma Ordine</button>
-            </form>
+                <div class="footer-section">
+                    <h3>Orari</h3>
+                    <p>Lun-Sab: 8:00 - 19:00</p>
+                    <p>Domenica: 8:00 - 13:00</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Mirella Ortofrutta. Tutti i diritti riservati.</p>
+            </div>
         </div>
-    </div>
+    </footer>
 
-    <!-- Firebase Scripts -->
-    <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-storage-compat.js"></script>
-    <script src="firebase-config.js"></script>
+    <!-- Message Container -->
+    <div id="message-container"></div>
+
+    <!-- Scripts -->
+    <script type="module" src="firebase-config.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
