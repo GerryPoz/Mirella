@@ -124,16 +124,33 @@ function setupEventListeners() {
         categoryFilter.addEventListener('change', performSearch); // Cambiato da filterByCategory a performSearch
     }
     
-    // User menu
+    // User menu event listeners
     const userMenu = document.getElementById('user-menu');
-    const logoutLink = document.getElementById('logout-link');
-    
     if (userMenu) {
-        userMenu.addEventListener('click', toggleUserMenu);
+        userMenu.addEventListener('click', (e) => {
+            e.preventDefault();
+            toggleUserMenu();
+        });
     }
-    
+
+    // Orders link
+    const ordersLink = document.getElementById('orders-link');
+    if (ordersLink) {
+        ordersLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            showSection('ordini');
+            loadUserOrders();
+            toggleUserMenu(); // Chiudi il dropdown
+        });
+    }
+
+    // Logout link
+    const logoutLink = document.getElementById('logout-link');
     if (logoutLink) {
-        logoutLink.addEventListener('click', handleLogout);
+        logoutLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            handleLogout();
+        });
     }
     
     // Checkout
@@ -795,4 +812,94 @@ function renderProducts(filteredProducts = null) {
             </div>
         `;
     }).join('');
+}
+
+// Carica gli ordini dell'utente corrente
+function loadUserOrders() {
+    if (!currentUser) {
+        console.log('Nessun utente loggato');
+        return;
+    }
+
+    console.log('Caricamento ordini per utente:', currentUser.uid);
+    
+    db.ref('orders').orderByChild('userId').equalTo(currentUser.uid)
+        .once('value')
+        .then(snapshot => {
+            const orders = [];
+            snapshot.forEach(childSnapshot => {
+                const order = {
+                    id: childSnapshot.key,
+                    ...childSnapshot.val()
+                };
+                orders.push(order);
+            });
+            
+            // Ordina per data (più recenti prima)
+            orders.sort((a, b) => {
+                const dateA = a.createdAt || 0;
+                const dateB = b.createdAt || 0;
+                return dateB - dateA;
+            });
+            
+            renderUserOrders(orders);
+        })
+        .catch(error => {
+            console.error('Errore nel caricamento degli ordini:', error);
+            showMessage('Errore nel caricamento degli ordini', 'error');
+        });
+}
+
+// Visualizza gli ordini dell'utente
+function renderUserOrders(orders) {
+    const ordersContent = document.getElementById('orders-content');
+    if (!ordersContent) return;
+
+    if (orders.length === 0) {
+        ordersContent.innerHTML = `
+            <div class="empty-state">
+                <p>Non hai ancora effettuato ordini</p>
+                <p>Vai alla sezione prodotti per iniziare!</p>
+            </div>
+        `;
+        return;
+    }
+
+    const ordersHTML = orders.map(order => {
+        const orderDate = order.createdAt ? new Date(order.createdAt).toLocaleDateString('it-IT') : 'Data non disponibile';
+        const statusClass = order.status || 'pending';
+        const statusText = {
+            'pending': 'In attesa',
+            'completed': 'Completato',
+            'cancelled': 'Annullato'
+        }[statusClass] || 'In attesa';
+
+        const itemsHTML = order.items ? order.items.map(item => `
+            <div class="order-item">
+                <div>
+                    <div class="order-item-name">${item.name}</div>
+                    <div class="order-item-details">${item.quantity} x €${item.price.toFixed(2)}</div>
+                </div>
+                <div>€${(item.quantity * item.price).toFixed(2)}</div>
+            </div>
+        `).join('') : '<p>Dettagli prodotti non disponibili</p>';
+
+        return `
+            <div class="order-card">
+                <div class="order-header">
+                    <div class="order-id">Ordine #${order.id.substring(0, 8)}</div>
+                    <div class="order-date">${orderDate}</div>
+                    <div class="order-status ${statusClass}">${statusText}</div>
+                </div>
+                <div class="order-items">
+                    ${itemsHTML}
+                </div>
+                <div class="order-total">
+                    Totale: €${(order.totalAmount || order.total || 0).toFixed(2)}
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    ordersContent.innerHTML = ordersHTML;
 }
