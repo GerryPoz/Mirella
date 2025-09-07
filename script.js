@@ -5,26 +5,16 @@ let products = [];
 let categories = [];
 let filteredProducts = [];
 
-// Firebase configuration (compatibility mode)
-const firebaseConfig = {
-  // Sostituisci con la tua configurazione Firebase
-  apiKey: "your-api-key",
-  authDomain: "your-project.firebaseapp.com",
-  databaseURL: "https://your-project-default-rtdb.firebaseio.com/",
-  projectId: "your-project-id",
-  storageBucket: "your-project.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "your-app-id"
-};
-
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-const auth = firebase.auth();
+let db, auth;
 
 // Initialize app when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    initializeApp();
+    // Aspetta che Firebase sia caricato
+    setTimeout(() => {
+        db = window.db;
+        auth = window.auth;
+        initializeApp();
+    }, 100);
 });
 
 function initializeApp() {
