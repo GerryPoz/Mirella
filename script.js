@@ -243,17 +243,31 @@ function toggleMobileMenu() {
 
 // Modal functions
 function openLoginModal() {
+    console.log('Opening login modal'); // Debug
     const modal = document.getElementById('login-modal');
     if (modal) {
-        modal.classList.add('show');
+        modal.classList.add('active'); // Cambiato da 'show' a 'active'
         showLoginForm();
+        console.log('Modal opened, classes:', modal.className); // Debug
+    } else {
+        console.error('Login modal not found!');
     }
 }
 
 function closeLoginModal() {
+    console.log('Closing login modal'); // Debug
     const modal = document.getElementById('login-modal');
     if (modal) {
-        modal.classList.remove('show');
+        modal.classList.remove('active'); // Cambiato da 'show' a 'active'
+        
+        // Reset form
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        if (loginForm) loginForm.reset();
+        if (registerForm) registerForm.reset();
+        
+        // Torna al form di login
+        showLoginForm();
     }
 }
 
@@ -546,6 +560,26 @@ function handleAuthStateChange(user) {
 
 function updateUserUI() {
     const loginLink = document.getElementById('login-link');
+
+    if (loginLink) {
+        loginLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Login link clicked');
+            
+            // Verifica che il modal esista
+            const modal = document.getElementById('login-modal');
+            if (modal) {
+                console.log('Modal found, opening...');
+                openLoginModal();
+            } else {
+                console.error('Modal element not found in DOM!');
+            }
+        });
+    } else {
+        console.error('Login link not found!');
+    }
+    
     const userMenu = document.getElementById('user-menu');
     const userName = document.getElementById('user-name');
     const adminLink = document.getElementById('admin-link');
