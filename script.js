@@ -598,20 +598,41 @@ function handleCheckout() {
         return;
     }
     
-    // Create order
+    // Create order with structure expected by admin.js
     const order = {
         userId: currentUser.uid,
         userEmail: currentUser.email,
         items: cart,
-        total: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+        totalAmount: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0), // Cambiato da 'total' a 'totalAmount'
         status: 'pending',
-        createdAt: new Date().toISOString()
+        createdAt: firebase.database.ServerValue.TIMESTAMP, // Usa timestamp di Firebase invece di ISO string
+        pickupDate: 'Da definire' // Aggiungi campo pickupDate
     };
     
     // Save order to Firebase
     db.ref('orders').push(order)
         .then(() => {
             console.log('Order created successfully');
+            
+            // Salva anche i dati del cliente per admin.js
+            const userData = {
+                name: currentUser.displayName || 'Nome non disponibile',
+                email: currentUser.email,
+                phone: 'N/A', // Potresti aggiungere un campo per il telefono nel form di registrazione
+                address: 'N/A' // Potresti aggiungere un campo per l'indirizzo
+            };
+            
+            // Salva i dati utente se non esistono già
+            db.ref(`users/${currentUser.uid}`).once('value')
+                .then(snapshot => {
+                    if (!snapshot.exists()) {
+                        return db.ref(`users/${currentUser.uid}`).set(userData);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error saving user data:', error);
+                });
+            
             cart = [];
             updateCartUI();
             showMessage('Ordine inviato con successo! Ti contatteremo presto.', 'success');
