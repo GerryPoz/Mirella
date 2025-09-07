@@ -1168,18 +1168,19 @@ footer p {
     }
     
     /* Products section */
+    /* Products section */
     .products-header {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e8f5e8 100%);
+        padding: 2.5rem 2rem;
+        border-radius: 20px;
+        margin-bottom: 3rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        border: 1px solid rgba(76, 175, 80, 0.2);
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 3rem;
         flex-wrap: wrap;
         gap: 2rem;
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        padding: 2rem;
-        border-radius: 20px;
-        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-        border: 1px solid rgba(76, 175, 80, 0.2);
         position: relative;
         overflow: hidden;
     }
@@ -1191,55 +1192,57 @@ footer p {
         left: 0;
         right: 0;
         height: 4px;
-        background: linear-gradient(90deg, #4caf50, #81c784, #4caf50);
-        background-size: 200% 100%;
-        animation: shimmer 3s ease-in-out infinite;
+        background: linear-gradient(90deg, #4caf50, #81c784, #66bb6a, #4caf50);
+        background-size: 300% 100%;
+        animation: gradientMove 4s ease-in-out infinite;
     }
     
-    @keyframes shimmer {
-        0%, 100% { background-position: -200% 0; }
-        50% { background-position: 200% 0; }
+    @keyframes gradientMove {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
     }
     
     .products-header h2 {
         color: #2e7d32;
-        font-size: 2.5rem;
+        font-size: 2.8rem;
         font-weight: 700;
         margin: 0;
         text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
         position: relative;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
     }
     
-    .products-header h2::after {
+    .products-header h2::before {
         content: '🥕';
-        margin-left: 1rem;
-        font-size: 2rem;
+        font-size: 2.5rem;
         animation: bounce 2s ease-in-out infinite;
     }
     
     @keyframes bounce {
         0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-        40% { transform: translateY(-10px); }
-        60% { transform: translateY(-5px); }
+        40% { transform: translateY(-8px); }
+        60% { transform: translateY(-4px); }
     }
     
     .search-filter {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
         display: flex;
         gap: 1.5rem;
         align-items: center;
         flex-wrap: wrap;
-        background: white;
-        padding: 1rem 1.5rem;
-        border-radius: 15px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        border: 2px solid transparent;
-        transition: all 0.3s ease;
     }
     
     .search-filter:hover {
         border-color: #4caf50;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(76, 175, 80, 0.2);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(76, 175, 80, 0.2);
     }
     
     .search-input,
@@ -1250,7 +1253,8 @@ footer p {
         font-size: 1rem;
         transition: all 0.3s ease;
         background: #fafafa;
-        min-width: 200px;
+        min-width: 180px;
+        font-family: inherit;
     }
     
     .search-input:focus,
@@ -1258,7 +1262,7 @@ footer p {
         outline: none;
         border-color: #4caf50;
         background: white;
-        box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.1);
         transform: scale(1.02);
     }
     
@@ -1267,28 +1271,56 @@ footer p {
         font-style: italic;
     }
     
-    /* Responsive design per l'intestazione */
+    .category-filter {
+        cursor: pointer;
+    }
+    
+    .category-filter option {
+        padding: 0.5rem;
+    }
+    
+    /* Responsive design */
     @media (max-width: 768px) {
         .products-header {
             flex-direction: column;
             text-align: center;
+            padding: 2rem 1.5rem;
             gap: 1.5rem;
-            padding: 1.5rem;
         }
         
         .products-header h2 {
-            font-size: 2rem;
+            font-size: 2.2rem;
+            justify-content: center;
         }
         
         .search-filter {
             width: 100%;
             justify-content: center;
+            padding: 1rem;
         }
         
         .search-input,
         .category-filter {
             min-width: auto;
             flex: 1;
+            max-width: 200px;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .products-header h2 {
+            font-size: 1.8rem;
+        }
+        
+        .search-filter {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .search-input,
+        .category-filter {
+            width: 100%;
+            max-width: none;
         }
     }
     
