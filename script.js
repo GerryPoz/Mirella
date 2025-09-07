@@ -83,8 +83,8 @@ function setupEventListeners() {
         });
     }
     
-    // Search functionality
-    const searchBox = document.getElementById('search-box');
+    / Search functionality
+    const searchBox = document.getElementById('search-input'); // Cambiato da 'search-box'
     if (searchBox) {
         searchBox.addEventListener('input', performSearch);
     }
@@ -202,8 +202,11 @@ function showSection(sectionId) {
 }
 
 function renderCategories() {
-    const categoriesContainer = document.getElementById('categories-container');
-    if (!categoriesContainer) return;
+    const categoriesContainer = document.getElementById('categories-grid'); // Cambiato da 'categories-container'
+    if (!categoriesContainer) {
+        console.error('Categories container not found');
+        return;
+    }
     
     categoriesContainer.innerHTML = categories.map(category => `
         <div class="category-card" onclick="filterByCategory('${category.id}'); showSection('prodotti');">
@@ -217,8 +220,11 @@ function renderCategories() {
 }
 
 function renderProducts() {
-    const productsContainer = document.getElementById('products-container');
-    if (!productsContainer) return;
+    const productsContainer = document.getElementById('products-grid'); // Cambiato da 'products-container'
+    if (!productsContainer) {
+        console.error('Products container not found');
+        return;
+    }
     
     if (filteredProducts.length === 0) {
         productsContainer.innerHTML = `
@@ -346,7 +352,10 @@ function updateCartUI() {
 }
 
 function performSearch() {
-    const searchTerm = document.getElementById('search-box').value.toLowerCase();
+    const searchBox = document.getElementById('search-input'); // Cambiato da 'search-box'
+    if (!searchBox) return;
+    
+    const searchTerm = searchBox.value.toLowerCase();
     
     if (searchTerm === '') {
         filteredProducts = [...products];
