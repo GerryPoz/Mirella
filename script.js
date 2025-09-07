@@ -221,42 +221,72 @@ function showRegisterForm() {
 }
 
 // Load data from Firebase
+// Load data from Firebase - MODIFIED VERSION
 function loadData() {
     console.log('Loading data from Firebase...');
     
     if (!db) {
         console.error('Database not initialized');
-        initializeSampleData();
         return;
     }
     
-    // Load categories and products
+    // Load categories and products from existing database
     db.ref().on('value', (snapshot) => {
         try {
             const data = snapshot.val();
             console.log('Data loaded from Firebase:', data);
             
             if (data) {
-                categories = data.categories ? Object.values(data.categories) : [];
-                products = data.products ? Object.values(data.products) : [];
+                // Load categories - convert Firebase object to array
+                if (data.categories) {
+                    categories = Object.keys(data.categories).map(key => ({
+                        id: key,
+                        ...data.categories[key]
+                    }));
+                } else {
+                    categories = [];
+                }
+                
+                // Load products - convert Firebase object to array
+                if (data.products) {
+                    products = Object.keys(data.products).map(key => ({
+                        id: key,
+                        ...data.products[key]
+                    }));
+                } else {
+                    products = [];
+                }
                 
                 console.log('Categories loaded:', categories.length);
                 console.log('Products loaded:', products.length);
                 
+                // Render the loaded data
                 renderCategories();
                 updateCategoryFilter();
                 renderProducts();
             } else {
-                console.log('No data found, initializing sample data...');
-                initializeSampleData();
+                console.log('No data found in database');
+                categories = [];
+                products = [];
+                renderCategories();
+                updateCategoryFilter();
+                renderProducts();
             }
         } catch (error) {
             console.error('Error processing data:', error);
-            initializeSampleData();
+            categories = [];
+            products = [];
+            renderCategories();
+            updateCategoryFilter();
+            renderProducts();
         }
     }, (error) => {
         console.error('Error loading data:', error);
-        initializeSampleData();
+        categories = [];
+        products = [];
+        renderCategories();
+        updateCategoryFilter();
+        renderProducts();
     });
 }
 
@@ -721,4 +751,42 @@ function initializeSampleData() {
             .then(() => console.log('Sample data saved to Firebase'))
             .catch(error => console.error('Error saving sample data:', error));
     }
+}
+
+// Render products - UPDATED to handle stock field
+function renderProducts(filteredProducts = null) {
+    const container = document.getElementById('products-grid');
+    if (!container) {
+        console.error('Products container not found');
+        return;
+    }
+    
+    const productsToRender = filteredProducts || products;
+    console.log('Rendering products:', productsToRender.length);
+    
+    if (productsToRender.length === 0) {
+        container.innerHTML = '<p class="empty-state">Nessun prodotto disponibile</p>';
+        return;
+    }
+    
+    container.innerHTML = productsToRender.map(product => {
+        // Check availability based on stock field from database
+        const isUnavailable = !product.stock || product.stock <= 0;
+        const stockText = product.stock ? `(${product.stock} disponibili)` : '';
+        
+        return `
+            <div class="product-card ${isUnavailable ? 'unavailable' : ''}">
+                <img src="${product.image}" alt="${product.name}" class="product-image" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjgwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDI4MCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyODAiIGhlaWdodD0iMjAwIiBmaWxsPSIjZjVmNWY1Ii8+Cjx0ZXh0IHg9IjE0MCIgeT0iMTA1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5OTkiPvCfk4o8L3RleHQ+Cjwvc3ZnPgo='">
+                <div class="product-info">
+                    <h3 class="product-name">${product.name}</h3>
+                    <p class="product-price">€${product.price.toFixed(2)}${product.unit ? '/' + product.unit : ''}</p>
+                    <p class="product-description">${product.description || ''}</p>
+                    <p class="product-stock">${stockText}</p>
+                    <button class="add-to-cart" onclick="addToCart('${product.id}')" ${isUnavailable ? 'disabled' : ''}>
+                        ${isUnavailable ? 'Non Disponibile' : 'Aggiungi al Carrello'}
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
 }
