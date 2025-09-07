@@ -125,36 +125,35 @@ function setupEventListeners() {
         });
     }
     
-    // Auth forms
-    const loginForm = document.getElementById('login-form');
-    if (loginForm) {
-        loginForm.addEventListener('submit', handleLogin);
+    // Auth forms - CORREZIONE QUI
+    const loginFormElement = document.getElementById('login-form-element');
+    if (loginFormElement) {
+        loginFormElement.addEventListener('submit', handleLogin);
     }
     
-    const registerForm = document.getElementById('register-form');
-    if (registerForm) {
-        registerForm.addEventListener('submit', handleRegister);
+    const registerFormElement = document.getElementById('register-form-element');
+    if (registerFormElement) {
+        registerFormElement.addEventListener('submit', handleRegister);
     }
     
-    // Auth tabs
-    document.querySelectorAll('.auth-tab').forEach(tab => {
-        tab.addEventListener('click', function() {
-            const targetForm = this.getAttribute('data-form');
-            
-            // Update active tab
-            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-            this.classList.add('active');
-            
-            // Show corresponding form
-            document.querySelectorAll('.auth-form').forEach(form => {
-                form.classList.remove('active');
-            });
-            const targetFormElement = document.getElementById(targetForm);
-            if (targetFormElement) {
-                targetFormElement.classList.add('active');
-            }
+    // Auth form switching - AGGIUNTO
+    const showRegisterLink = document.getElementById('show-register');
+    if (showRegisterLink) {
+        showRegisterLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('login-form').style.display = 'none';
+            document.getElementById('register-form').style.display = 'block';
         });
-    });
+    }
+    
+    const showLoginLink = document.getElementById('show-login');
+    if (showLoginLink) {
+        showLoginLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('register-form').style.display = 'none';
+            document.getElementById('login-form').style.display = 'block';
+        });
+    }
     
     // Checkout button
     const checkoutBtn = document.getElementById('checkout-button');
@@ -469,7 +468,7 @@ function handleLogin(e) {
             showMessage('Login effettuato con successo!', 'success');
             
             // Reset form
-            document.getElementById('login-form').reset();
+            document.getElementById('login-form-element').reset();
             
             // Redirect to home
             showSection('home');
@@ -503,15 +502,11 @@ function handleRegister(e) {
     const name = document.getElementById('register-name').value;
     const email = document.getElementById('register-email').value;
     const password = document.getElementById('register-password').value;
-    const confirmPassword = document.getElementById('register-confirm-password').value;
+    const phone = document.getElementById('register-phone').value;
+    const address = document.getElementById('register-address').value;
     
-    if (!name || !email || !password || !confirmPassword) {
-        showMessage('Compila tutti i campi', 'error');
-        return;
-    }
-    
-    if (password !== confirmPassword) {
-        showMessage('Le password non coincidono', 'error');
+    if (!name || !email || !password) {
+        showMessage('Compila i campi obbligatori (Nome, Email, Password)', 'error');
         return;
     }
     
@@ -534,6 +529,8 @@ function handleRegister(e) {
                 return firebase.database().ref('users/' + userCredential.user.uid).set({
                     name: name,
                     email: email,
+                    phone: phone || '',
+                    address: address || '',
                     createdAt: firebase.database.ServerValue.TIMESTAMP
                 });
             });
@@ -542,7 +539,7 @@ function handleRegister(e) {
             showMessage('Registrazione completata con successo!', 'success');
             
             // Reset form
-            document.getElementById('register-form').reset();
+            document.getElementById('register-form-element').reset();
             
             // Redirect to home
             showSection('home');
