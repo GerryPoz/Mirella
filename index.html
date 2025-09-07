@@ -3,74 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mirella Ortofrutta - Prodotti Freschi e Genuini</title>
-    <link rel="icon" href="data:,">
+    <title>Mirella Ortofrutta - Prodotti Freschi di Qualità</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <!-- Header -->
-    <header class="header">
-        <nav class="nav-container">
-            <div class="logo">
-                <i class="fas fa-leaf"></i>
-                <span>Mirella Ortofrutta</span>
-            </div>
-            <ul class="nav-menu" id="nav-menu">
-                <li class="nav-item">
-                    <a href="#home" class="nav-link active">
-                        <i class="fas fa-home"></i> Home
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#chi-siamo" class="nav-link">
-                        <i class="fas fa-info-circle"></i> Chi Siamo
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#prodotti" class="nav-link">
-                        <i class="fas fa-shopping-basket"></i> Prodotti
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#carrello" class="nav-link">
-                        <i class="fas fa-shopping-cart"></i> Carrello
-                        <span class="cart-badge" id="cart-count">0</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#accedi" class="nav-link" id="auth-link">
-                        <i class="fas fa-user"></i> Accedi
-                    </a>
-                </li>
-            </ul>
-            <div class="mobile-toggle" id="mobile-toggle">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-        </nav>
+    <header>
+        <div class="header-content">
+            <a href="#" class="logo">🥬 Mirella Ortofrutta</a>
+            <nav>
+                <ul id="nav-menu">
+                    <li><a href="#home" class="nav-link active">🏠 Home</a></li>
+                    <li><a href="#chi-siamo" class="nav-link">ℹ️ Chi Siamo</a></li>
+                    <li><a href="#prodotti" class="nav-link">🥕 Prodotti</a></li>
+                    <li><a href="#carrello" class="nav-link">🛒 Carrello <span id="cart-count">0</span></a></li>
+                    <li><a href="#" id="login-link" class="nav-link">👤 Accedi</a></li>
+                    <li><a href="#" id="user-menu" class="nav-link hidden">👋 <span id="user-name"></span></a></li>
+                </ul>
+                <button class="menu-toggle" id="menu-toggle">☰</button>
+            </nav>
+        </div>
     </header>
 
     <!-- Main Content -->
-    <main class="main-content">
+    <main>
         <!-- Home Section -->
         <section id="home" class="section active">
             <div class="hero">
-                <div class="hero-content">
-                    <h1>Benvenuti da Mirella Ortofrutta</h1>
-                    <p>Prodotti freschi e genuini direttamente dal nostro orto</p>
-                    <button class="cta-button" onclick="showSection('prodotti')">
-                        <i class="fas fa-shopping-basket"></i>
-                        Scopri i nostri prodotti
-                    </button>
-                </div>
+                <h1>Benvenuti da Mirella Ortofrutta</h1>
+                <p>Prodotti freschi e di qualità direttamente dal nostro orto alla vostra tavola. Scoprite la nostra selezione di frutta e verdura fresca, coltivata con passione e dedizione.</p>
             </div>
-            
-            <!-- Categories -->
-            <div class="container">
+
+            <div class="categories">
                 <h2>Le Nostre Categorie</h2>
-                <div class="categories-grid" id="categories-grid">
+                <div id="categories-grid" class="categories-grid">
                     <!-- Categories will be loaded here -->
                 </div>
             </div>
@@ -78,183 +44,130 @@
 
         <!-- Chi Siamo Section -->
         <section id="chi-siamo" class="section">
-            <div class="container">
-                <h2>Chi Siamo</h2>
-                <div class="about-content">
-                    <div class="about-text">
-                        <h3>La Storia di Mirella Ortofrutta</h3>
-                        <p>Da oltre 20 anni, Mirella Ortofrutta è sinonimo di qualità e freschezza. La nostra azienda agricola familiare si dedica alla coltivazione di frutta e verdura seguendo metodi tradizionali e sostenibili.</p>
-                        <p>Ogni prodotto viene raccolto al momento giusto per garantire il massimo della freschezza e del sapore. La nostra passione per l'agricoltura si riflette nella cura che dedichiamo ad ogni singolo prodotto.</p>
-                        <div class="features">
-                            <div class="feature">
-                                <i class="fas fa-leaf"></i>
-                                <h4>Prodotti Biologici</h4>
-                                <p>Coltivazione naturale senza pesticidi</p>
-                            </div>
-                            <div class="feature">
-                                <i class="fas fa-truck"></i>
-                                <h4>Consegna Fresca</h4>
-                                <p>Dal campo alla tua tavola in 24 ore</p>
-                            </div>
-                            <div class="feature">
-                                <i class="fas fa-heart"></i>
-                                <h4>Passione Familiare</h4>
-                                <p>Tradizione e amore per la terra</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <h2>Chi Siamo</h2>
+            <div class="about-content">
+                <p>Mirella Ortofrutta è un'azienda familiare che da generazioni si dedica alla coltivazione e vendita di prodotti ortofrutticoli di alta qualità. La nostra passione per l'agricoltura sostenibile e l'attenzione per il cliente ci hanno permesso di diventare un punto di riferimento nel settore.</p>
+                
+                <h3>La Nostra Missione</h3>
+                <p>Offrire prodotti freschi, genuini e di stagione, coltivati nel rispetto dell'ambiente e delle tradizioni agricole locali. Crediamo nell'importanza di un'alimentazione sana e sostenibile.</p>
+                
+                <h3>I Nostri Valori</h3>
+                <ul>
+                    <li><strong>Qualità:</strong> Selezioniamo solo i migliori prodotti</li>
+                    <li><strong>Freschezza:</strong> Dalla terra alla tavola in tempi record</li>
+                    <li><strong>Sostenibilità:</strong> Rispetto per l'ambiente e le risorse</li>
+                    <li><strong>Tradizione:</strong> Metodi di coltivazione tramandati nel tempo</li>
+                </ul>
             </div>
         </section>
 
         <!-- Prodotti Section -->
         <section id="prodotti" class="section">
-            <div class="container">
+            <div class="products-header">
                 <h2>I Nostri Prodotti</h2>
-                
-                <!-- Filters -->
-                <div class="filters">
-                    <select id="category-filter">
+                <div class="search-filter">
+                    <select id="category-filter" class="filter-select">
                         <option value="">Tutte le categorie</option>
                     </select>
-                    <input type="text" id="search-input" placeholder="Cerca prodotti...">
-                    <button id="search-button">
-                        <i class="fas fa-search"></i>
-                    </button>
+                    <input type="text" id="search-input" class="search-box" placeholder="Cerca prodotti...">
                 </div>
-                
-                <!-- Products Grid -->
-                <div class="products-grid" id="products-grid">
-                    <!-- Products will be loaded here -->
-                </div>
+            </div>
+            <div id="products-grid" class="products-grid">
+                <!-- Products will be loaded here -->
             </div>
         </section>
 
         <!-- Carrello Section -->
         <section id="carrello" class="section">
-            <div class="container">
-                <h2>Il Tuo Carrello</h2>
-                <div id="cart-content">
-                    <div class="empty-cart">
-                        <i class="fas fa-shopping-cart"></i>
-                        <p>Il tuo carrello è vuoto</p>
-                        <button onclick="showSection('prodotti')" class="btn-primary">
-                            Inizia a fare la spesa
-                        </button>
-                    </div>
-                </div>
-                <div id="cart-summary" class="cart-summary" style="display: none;">
-                    <div class="cart-items" id="cart-items"></div>
-                    <div class="cart-total">
-                        <h3>Totale: €<span id="cart-total">0.00</span></h3>
-                        <button id="checkout-button" class="btn-primary">
-                            <i class="fas fa-credit-card"></i>
-                            Procedi all'ordine
-                        </button>
-                    </div>
+            <h2>Il Tuo Carrello</h2>
+            <div id="cart-content" class="cart-items">
+                <div class="empty-state">
+                    <p>Il tuo carrello è vuoto</p>
+                    <p>Aggiungi alcuni prodotti per iniziare!</p>
                 </div>
             </div>
-        </section>
-
-        <!-- Accedi Section -->
-        <section id="accedi" class="section">
-            <div class="container">
-                <div class="auth-container">
-                    <!-- Login Form -->
-                    <div id="login-form" class="auth-form">
-                        <h2>Accedi</h2>
-                        <form id="login-form-element">
-                            <div class="form-group">
-                                <label for="login-email">Email:</label>
-                                <input type="email" id="login-email" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="login-password">Password:</label>
-                                <input type="password" id="login-password" required>
-                            </div>
-                            <button type="submit" class="btn-primary">
-                                <i class="fas fa-sign-in-alt"></i>
-                                Accedi
-                            </button>
-                        </form>
-                        <p class="auth-switch">
-                            Non hai un account? 
-                            <a href="#" id="show-register">Registrati</a>
-                        </p>
-                    </div>
-
-                    <!-- Register Form -->
-                    <div id="register-form" class="auth-form" style="display: none;">
-                        <h2>Registrati</h2>
-                        <form id="register-form-element">
-                            <div class="form-group">
-                                <label for="register-name">Nome:</label>
-                                <input type="text" id="register-name" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="register-email">Email:</label>
-                                <input type="email" id="register-email" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="register-password">Password:</label>
-                                <input type="password" id="register-password" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="register-phone">Telefono:</label>
-                                <input type="tel" id="register-phone">
-                            </div>
-                            <div class="form-group">
-                                <label for="register-address">Indirizzo:</label>
-                                <textarea id="register-address" rows="3"></textarea>
-                            </div>
-                            <button type="submit" class="btn-primary">
-                                <i class="fas fa-user-plus"></i>
-                                Registrati
-                            </button>
-                        </form>
-                        <p class="auth-switch">
-                            Hai già un account? 
-                            <a href="#" id="show-login">Accedi</a>
-                        </p>
-                    </div>
-                </div>
+            <div id="cart-summary" class="cart-summary hidden">
+                <div id="cart-total" class="cart-total">Totale: €0.00</div>
+                <button id="checkout-btn" class="checkout-btn">Procedi al Checkout</button>
             </div>
         </section>
     </main>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h3>Mirella Ortofrutta</h3>
-                    <p>Prodotti freschi e genuini dal 2004</p>
-                </div>
-                <div class="footer-section">
-                    <h3>Contatti</h3>
-                    <p><i class="fas fa-phone"></i> +39 123 456 7890</p>
-                    <p><i class="fas fa-envelope"></i> info@mirellaortofrutta.it</p>
-                </div>
-                <div class="footer-section">
-                    <h3>Orari</h3>
-                    <p>Lun-Sab: 8:00 - 19:00</p>
-                    <p>Domenica: 8:00 - 13:00</p>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2024 Mirella Ortofrutta. Tutti i diritti riservati.</p>
+    <!-- Modal per Login/Registrazione -->
+    <div id="login-modal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" id="modal-close">&times;</button>
+            
+            <div class="auth-container">
+                <h2 id="auth-title" style="text-align: center; margin-bottom: 2rem; color: #2e7d32;">Accedi al tuo account</h2>
+                
+                <!-- Form di Login -->
+                <form id="login-form" class="auth-form" style="display: block;">
+                    <div class="form-group">
+                        <label for="login-email">Email:</label>
+                        <input type="email" id="login-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password:</label>
+                        <input type="password" id="login-password" required>
+                    </div>
+                    <button type="submit" class="auth-btn">Accedi</button>
+                    
+                    <div class="auth-switch">
+                        Non hai un account? <a href="#" id="show-register">Registrati</a>
+                    </div>
+                </form>
+                
+                <!-- Form di Registrazione -->
+                <form id="register-form" class="auth-form" style="display: none;">
+                    <div class="form-group">
+                        <label for="register-name">Nome:</label>
+                        <input type="text" id="register-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-email">Email:</label>
+                        <input type="email" id="register-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-password">Password:</label>
+                        <input type="password" id="register-password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-phone">Telefono:</label>
+                        <input type="tel" id="register-phone">
+                    </div>
+                    <div class="form-group">
+                        <label for="register-address">Indirizzo:</label>
+                        <input type="text" id="register-address">
+                    </div>
+                    <button type="submit" class="auth-btn">Registrati</button>
+                    
+                    <div class="auth-switch">
+                        Hai già un account? <a href="#" id="show-login">Accedi</a>
+                    </div>
+                </form>
             </div>
         </div>
+    </div>
+
+    <!-- User Menu Dropdown -->
+    <div id="user-dropdown" class="user-dropdown hidden">
+        <a href="#" id="profile-link">👤 Profilo</a>
+        <a href="#" id="orders-link">📦 Ordini</a>
+        <a href="admin.html" id="admin-link" class="hidden">⚙️ Admin</a>
+        <a href="#" id="logout-link">🚪 Logout</a>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2024 Mirella Ortofrutta. Tutti i diritti riservati.</p>
+        <p>Via dell'Orto, 123 - 00100 Roma | Tel: 06-1234567 | Email: info@mirellaortofrutta.it</p>
     </footer>
 
-    <!-- Message Container -->
-    <div id="message-container"></div>
-
-        <!-- Scripts -->
-    <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-storage-compat.js"></script>
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
     <script src="firebase-config.js"></script>
     <script src="script.js"></script>
 </body>
