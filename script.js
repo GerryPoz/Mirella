@@ -124,7 +124,7 @@ function setupEventListeners() {
         categoryFilter.addEventListener('change', performSearch); // Cambiato da filterByCategory a performSearch
     }
     
-    // User menu event listeners
+        // User menu event listeners
     const userMenu = document.getElementById('user-menu');
     if (userMenu) {
         userMenu.addEventListener('click', (e) => {
@@ -152,6 +152,16 @@ function setupEventListeners() {
             handleLogout();
         });
     }
+
+    // Chiudi dropdown quando si clicca fuori
+    document.addEventListener('click', (e) => {
+        const userMenu = document.getElementById('user-menu');
+        const dropdown = document.getElementById('user-dropdown');
+        
+        if (userMenu && dropdown && !userMenu.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.classList.add('hidden');
+        }
+    });
     
     // Checkout
     const checkoutBtn = document.getElementById('checkout-btn');
