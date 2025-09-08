@@ -346,14 +346,9 @@ main {
 }
 
 .section {
-    /*display: none;
+    display: none;
     padding: 2rem 0;
-    animation: fadeIn 0.5s ease-in;*/
-
-    text-align: center;
-    color: #2e7d32;
-    margin-bottom: 2rem;
-    font-size: 2rem;
+    animation: fadeIn 0.5s ease-in;
 }
 
 .section.active {
