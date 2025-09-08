@@ -440,7 +440,7 @@ main {
     font-size: 0.9rem;
 }
 
-/* Products section */
+/* Products section 
 .products-header {
     display: flex;
     justify-content: space-between;
@@ -448,6 +448,17 @@ main {
     margin-bottom: 2rem;
     flex-wrap: wrap;
     gap: 1rem;
+}
+*/
+.products-header {
+    background: linear-gradient(135deg, #e8f5e8, #c8e6c9);
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+    text-align: center;
 }
 
 .search-filter {
