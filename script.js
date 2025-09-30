@@ -1072,3 +1072,38 @@ function toggleUserOrderDetails(orderId) {
         btnIcon.textContent = '▼';
     }
 }
+
+// Carica e mostra i dati del profilo utente
+function loadUserProfile() {
+    if (!currentUser) {
+        showMessage('Devi essere loggato per vedere il profilo', 'error');
+        return;
+    }
+
+    // Aggiorna i dati del profilo
+    const profileName = document.getElementById('profile-name');
+    const profileEmail = document.getElementById('profile-email');
+    const memberSince = document.getElementById('member-since');
+
+    if (profileName) {
+        profileName.textContent = currentUser.displayName || 'Nome non disponibile';
+    }
+    
+    if (profileEmail) {
+        profileEmail.textContent = currentUser.email;
+    }
+    
+    if (memberSince && currentUser.metadata && currentUser.metadata.creationTime) {
+        const creationDate = new Date(currentUser.metadata.creationTime);
+        memberSince.textContent = creationDate.toLocaleDateString('it-IT');
+    }
+}
+
+// Funzioni placeholder per le azioni del profilo
+function editProfile() {
+    showMessage('Funzione di modifica profilo in sviluppo', 'info');
+}
+
+function changePassword() {
+    showMessage('Funzione di cambio password in sviluppo', 'info');
+}
