@@ -419,24 +419,27 @@ function renderProducts(filteredProducts = null) {
     }
     
     const productsToRender = filteredProducts || products;
-    console.log('Rendering products:', productsToRender.length);
     
-    if (productsToRender.length === 0) {
+    // Filtra i prodotti per mostrare solo quelli disponibili
+    const availableProducts = productsToRender.filter(product => product.available !== false);
+    
+    console.log('Rendering products:', availableProducts.length);
+    
+    if (availableProducts.length === 0) {
         container.innerHTML = '<p class="empty-state">Nessun prodotto disponibile</p>';
         return;
     }
     
-    container.innerHTML = productsToRender.map(product => {
-        const isUnavailable = !product.available;
+    container.innerHTML = availableProducts.map(product => {
         return `
-            <div class="product-card ${isUnavailable ? 'unavailable' : ''}">
+            <div class="product-card">
                 <img src="${product.image}" alt="${product.name}" class="product-image" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjgwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDI4MCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyODAiIGhlaWdodD0iMjAwIiBmaWxsPSIjZjVmNWY1Ii8+Cjx0ZXh0IHg9IjE0MCIgeT0iMTA1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5OTkiPvCfk4o8L3RleHQ+Cjwvc3ZnPgo='">
                 <div class="product-info">
                     <h3 class="product-name">${product.name}</h3>
                     <p class="product-price">€${product.price.toFixed(2)}${product.unit ? '/' + product.unit : ''}</p>
                     <p class="product-description">${product.description || ''}</p>
-                    <button class="add-to-cart" onclick="addToCart('${product.id}')" ${isUnavailable ? 'disabled' : ''}>
-                        ${isUnavailable ? 'Non Disponibile' : 'Aggiungi al Carrello'}
+                    <button class="add-to-cart" onclick="addToCart('${product.id}')">
+                        Aggiungi al Carrello
                     </button>
                 </div>
             </div>
