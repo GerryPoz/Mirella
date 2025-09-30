@@ -186,6 +186,30 @@ function setupEventListeners() {
     if (checkoutBtn) {
         checkoutBtn.addEventListener('click', handleCheckout);
     }
+
+    // Event listeners per i form del profilo
+    const editProfileForm = document.getElementById('edit-profile-form');
+    if (editProfileForm) {
+        editProfileForm.addEventListener('submit', handleEditProfile);
+    }
+    
+    const changePasswordForm = document.getElementById('change-password-form');
+    if (changePasswordForm) {
+        changePasswordForm.addEventListener('submit', handleChangePassword);
+    }
+    
+    // Chiudi modali cliccando fuori
+    window.addEventListener('click', (e) => {
+        const editModal = document.getElementById('edit-profile-modal');
+        const passwordModal = document.getElementById('change-password-modal');
+        
+        if (e.target === editModal) {
+            closeEditProfileModal();
+        }
+        if (e.target === passwordModal) {
+            closeChangePasswordModal();
+        }
+    });
     
     console.log('Event listeners setup complete');
 }
@@ -1108,11 +1132,155 @@ function loadUserProfile() {
         memberSince.textContent = creationDate.toLocaleDateString('it-IT');
     }
 }
-// Funzioni placeholder per le azioni del profilo
+
+// Funzioni per la gestione del profilo
 function editProfile() {
-    showMessage('Funzione di modifica profilo in sviluppo', 'info');
+    if (!currentUser) {
+        showMessage('Devi essere loggato per modificare il profilo', 'error');
+        return;
+    }
+    
+    // Popola i campi con i dati attuali
+    document.getElementById('edit-name').value = currentUser.displayName || '';
+    
+    // Carica dati aggiuntivi dal database se disponibili
+    if (db && currentUser.uid) {
+        db.ref(`users/${currentUser.uid}`).once('value')
+            .then(snapshot => {
+                const userData = snapshot.val();
+                if (userData) {
+                    document.getElementById('edit-phone').value = userData.phone || '';
+                    document.getElementById('edit-address').value = userData.address || '';
+                }
+            })
+            .catch(error => {
+                console.error('Errore nel caricamento dati utente:', error);
+            });
+    }
+    
+    // Mostra il modal
+    document.getElementById('edit-profile-modal').style.display = 'block';
+}
+
+function closeEditProfileModal() {
+    document.getElementById('edit-profile-modal').style.display = 'none';
 }
 
 function changePassword() {
-    showMessage('Funzione di cambio password in sviluppo', 'info');
+    if (!currentUser) {
+        showMessage('Devi essere loggato per cambiare la password', 'error');
+        return;
+    }
+    
+    // Reset del form
+    document.getElementById('change-password-form').reset();
+    
+    // Mostra il modal
+    document.getElementById('change-password-modal').style.display = 'block';
+}
+
+function closeChangePasswordModal() {
+    document.getElementById('change-password-modal').style.display = 'none';
+}
+
+// Gestione form modifica profilo
+function handleEditProfile(e) {
+    e.preventDefault();
+    
+    if (!currentUser) {
+        showMessage('Sessione scaduta, effettua nuovamente il login', 'error');
+        return;
+    }
+    
+    const name = document.getElementById('edit-name').value.trim();
+    const phone = document.getElementById('edit-phone').value.trim();
+    const address = document.getElementById('edit-address').value.trim();
+    
+    if (!name) {
+        showMessage('Il nome è obbligatorio', 'error');
+        return;
+    }
+    
+    // Aggiorna il displayName in Firebase Auth
+    currentUser.updateProfile({
+        displayName: name
+    }).then(() => {
+        // Salva dati aggiuntivi nel database
+        if (db) {
+            return db.ref(`users/${currentUser.uid}`).update({
+                name: name,
+                phone: phone,
+                address: address,
+                updatedAt: firebase.database.ServerValue.TIMESTAMP
+            });
+        }
+    }).then(() => {
+        showMessage('Profilo aggiornato con successo!', 'success');
+        closeEditProfileModal();
+        loadUserProfile(); // Ricarica i dati del profilo
+    }).catch(error => {
+        console.error('Errore nell\'aggiornamento del profilo:', error);
+        showMessage('Errore nell\'aggiornamento del profilo: ' + error.message, 'error');
+    });
+}
+
+// Gestione form cambio password
+function handleChangePassword(e) {
+    e.preventDefault();
+    
+    if (!currentUser) {
+        showMessage('Sessione scaduta, effettua nuovamente il login', 'error');
+        return;
+    }
+    
+    const currentPassword = document.getElementById('current-password').value;
+    const newPassword = document.getElementById('new-password').value;
+    const confirmPassword = document.getElementById('confirm-password').value;
+    
+    // Validazioni
+    if (newPassword !== confirmPassword) {
+        showMessage('Le nuove password non coincidono', 'error');
+        return;
+    }
+    
+    if (newPassword.length < 6) {
+        showMessage('La nuova password deve essere di almeno 6 caratteri', 'error');
+        return;
+    }
+    
+    // Riautentica l'utente con la password attuale
+    const credential = firebase.auth.EmailAuthProvider.credential(
+        currentUser.email,
+        currentPassword
+    );
+    
+    currentUser.reauthenticateWithCredential(credential)
+        .then(() => {
+            // Aggiorna la password
+            return currentUser.updatePassword(newPassword);
+        })
+        .then(() => {
+            showMessage('Password cambiata con successo!', 'success');
+            closeChangePasswordModal();
+        })
+        .catch(error => {
+            console.error('Errore nel cambio password:', error);
+            let errorMessage = 'Errore nel cambio password';
+            
+            switch (error.code) {
+                case 'auth/wrong-password':
+                    errorMessage = 'Password attuale non corretta';
+                    break;
+                case 'auth/weak-password':
+                    errorMessage = 'La nuova password è troppo debole';
+                    break;
+                case 'auth/requires-recent-login':
+                    errorMessage = 'Per sicurezza, effettua nuovamente il login e riprova';
+                    break;
+                default:
+                    errorMessage = error.message;
+            }
+            
+            showMessage(errorMessage, 'error');
+        });
 }
