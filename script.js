@@ -739,6 +739,8 @@ function handleLogout() {
         .then(() => {
             console.log('Logout successful');
             showMessage('Logout effettuato con successo!', 'success');
+            // Redirect automatico alla pagina Home
+            showSection('home');
         })
         .catch((error) => {
             console.error('Logout error:', error);
