@@ -1075,30 +1075,39 @@ function toggleUserOrderDetails(orderId) {
 
 // Carica e mostra i dati del profilo utente
 function loadUserProfile() {
+    console.log('loadUserProfile chiamata, currentUser:', currentUser); // Debug
+    
     if (!currentUser) {
         showMessage('Devi essere loggato per vedere il profilo', 'error');
         return;
     }
 
+    // Debug: verifica se la sezione profilo è visibile
+    const profiloSection = document.getElementById('profilo');
+    console.log('Sezione profilo trovata:', profiloSection);
+    console.log('Sezione profilo ha classe active:', profiloSection?.classList.contains('active'));
+
     // Aggiorna i dati del profilo
     const profileName = document.getElementById('profile-name');
     const profileEmail = document.getElementById('profile-email');
-    const memberSince = document.getElementById('member-since');
+    
+    console.log('Elementi profilo trovati:', { profileName, profileEmail }); // Debug
 
     if (profileName) {
         profileName.textContent = currentUser.displayName || 'Nome non disponibile';
     }
-    
+
     if (profileEmail) {
         profileEmail.textContent = currentUser.email;
     }
-    
-    if (memberSince && currentUser.metadata && currentUser.metadata.creationTime) {
+
+    // Aggiorna la data di registrazione se disponibile
+    const memberSince = document.getElementById('member-since');
+    if (memberSince && currentUser.metadata) {
         const creationDate = new Date(currentUser.metadata.creationTime);
         memberSince.textContent = creationDate.toLocaleDateString('it-IT');
     }
 }
-
 // Funzioni placeholder per le azioni del profilo
 function editProfile() {
     showMessage('Funzione di modifica profilo in sviluppo', 'info');
