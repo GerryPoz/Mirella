@@ -469,16 +469,20 @@ main {
 }
 
 .search-input,
-.category-filter {
+.category-filter,
+.filter-select,
+.search-box {
     padding: 0.75rem;
     border: 2px solid #ddd;
     border-radius: 8px;
-    font-size: 2rem;
+    font-size: 1.2rem; /* Aumentato da 1rem a 1.2rem */
     transition: border-color 0.3s ease;
 }
 
 .search-input:focus,
-.category-filter:focus {
+.category-filter:focus,
+.filter-select:focus,
+.search-box:focus {
     outline: none;
     border-color: #4caf50;
 }
