@@ -119,6 +119,30 @@
         </section>
     </main>
 
+    <!-- Profilo Section -->
+        <section id="profilo" class="section">
+            <h2>Il Mio Profilo</h2>
+            <div class="profile-content">
+                <div class="profile-info">
+                    <div class="profile-card">
+                        <div class="profile-avatar">
+                            <span class="avatar-icon">👤</span>
+                        </div>
+                        <div class="profile-details">
+                            <h3 id="profile-name">Nome Utente</h3>
+                            <p id="profile-email">email@esempio.com</p>
+                            <p class="member-since">Membro dal: <span id="member-since"></span></p>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-actions">
+                        <button class="btn-secondary" onclick="editProfile()">✏️ Modifica Profilo</button>
+                        <button class="btn-secondary" onclick="changePassword()">🔒 Cambia Password</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
     <!-- Modal per Login/Registrazione -->
     <div id="login-modal" class="modal">
         <div class="modal-content">
