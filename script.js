@@ -151,6 +151,17 @@ function setupEventListeners() {
         });
     }
 
+    // Profile link
+    const profileLink = document.getElementById('profile-link');
+    if (profileLink) {
+        profileLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            showSection('profilo');
+            loadUserProfile();
+            toggleUserMenu(); // Chiudi il dropdown
+        });
+    }
+
     // Logout link
     const logoutLink = document.getElementById('logout-link');
     if (logoutLink) {
