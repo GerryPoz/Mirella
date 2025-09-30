@@ -46,7 +46,7 @@ function setupEventListeners() {
     console.log('Setting up event listeners...');
     
     // Navigation links (escludi link speciali)
-    const navLinks = document.querySelectorAll('.nav-link:not(#login-link):not(#user-menu):not(#logout-link):not(#orders-link):not(#orders-nav-link)');
+    const navLinks = document.querySelectorAll('.nav-link:not(#login-link):not(#user-menu):not(#logout-link):not(#orders-nav-link)');
     navLinks.forEach(link => {
         link.addEventListener('click', handleNavigation);
     });
@@ -148,17 +148,6 @@ function setupEventListeners() {
             e.preventDefault();
             showSection('ordini');
             loadUserOrders();
-        });
-    }
-    
-    // Orders link nel dropdown (mantieni quello esistente)
-    const ordersLink = document.getElementById('orders-link');
-    if (ordersLink) {
-        ordersLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            showSection('ordini');
-            loadUserOrders();
-            toggleUserMenu(); // Chiudi il dropdown
         });
     }
 
