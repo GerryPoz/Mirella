@@ -46,7 +46,7 @@ function setupEventListeners() {
     console.log('Setting up event listeners...');
     
     // Navigation links (escludi link speciali)
-    const navLinks = document.querySelectorAll('.nav-link:not(#login-link):not(#user-menu):not(#logout-link):not(#orders-link)');
+    const navLinks = document.querySelectorAll('.nav-link:not(#login-link):not(#user-menu):not(#logout-link):not(#orders-link):not(#orders-nav-link)');
     navLinks.forEach(link => {
         link.addEventListener('click', handleNavigation);
     });
@@ -141,7 +141,17 @@ function setupEventListeners() {
         });
     }
 
-    // Orders link
+    // Orders link nel menu principale
+    const ordersNavLink = document.getElementById('orders-nav-link');
+    if (ordersNavLink) {
+        ordersNavLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            showSection('ordini');
+            loadUserOrders();
+        });
+    }
+    
+    // Orders link nel dropdown (mantieni quello esistente)
     const ordersLink = document.getElementById('orders-link');
     if (ordersLink) {
         ordersLink.addEventListener('click', (e) => {
@@ -583,12 +593,14 @@ function updateUserUI() {
     const userMenu = document.getElementById('user-menu');
     const userName = document.getElementById('user-name');
     const adminLink = document.getElementById('admin-link');
+    const ordersNavLink = document.getElementById('orders-nav-link');
     
     if (currentUser) {
         // User is logged in
         if (loginLink) loginLink.classList.add('hidden');
         if (userMenu) userMenu.classList.remove('hidden');
         if (userName) userName.textContent = currentUser.displayName || currentUser.email;
+        if (ordersNavLink) ordersNavLink.classList.remove('hidden');
         
         // Show admin link for admin users
         if (adminLink && currentUser.email === 'admin@mirellaortofrutta.it') {
@@ -599,6 +611,7 @@ function updateUserUI() {
         if (loginLink) loginLink.classList.remove('hidden');
         if (userMenu) userMenu.classList.add('hidden');
         if (adminLink) adminLink.classList.add('hidden');
+        if (ordersNavLink) ordersNavLink.classList.add('hidden');
     }
 }
 
