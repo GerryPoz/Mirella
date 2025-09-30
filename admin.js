@@ -251,6 +251,7 @@ function addProduct() {
             categoryId,
             unit,
             image: imageData,
+            available: true, // Nuovo prodotto disponibile di default
             createdAt: firebase.database.ServerValue.TIMESTAMP
         }).then(() => {
             document.getElementById('product-name').value = '';
