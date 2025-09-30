@@ -1160,6 +1160,62 @@ function editProfile() {
     
     // Mostra il modal
     document.getElementById('edit-profile-modal').style.display = 'block';
+
+    // Popola i campi con i dati attuali
+    const editNameField = document.getElementById('edit-name');
+    const editPhoneField = document.getElementById('edit-phone');
+    const editAddressField = document.getElementById('edit-address');
+    
+    // Carica il nome dall'utente corrente o dal database
+    let userName = '';
+    
+    // Prima prova a prendere il displayName da Firebase Auth
+    if (currentUser.displayName) {
+        userName = currentUser.displayName;
+    }
+    
+    // Se non c'è displayName, prova a caricare dal database
+    if (db && currentUser.uid) {
+        db.ref(`users/${currentUser.uid}`).once('value')
+            .then(snapshot => {
+                const userData = snapshot.val();
+                if (userData) {
+                    // Se c'è un nome nel database, usalo
+                    if (userData.name && !userName) {
+                        userName = userData.name;
+                    }
+                    
+                    // Popola tutti i campi
+                    if (editNameField) {
+                        editNameField.value = userName || userData.name || '';
+                    }
+                    if (editPhoneField) {
+                        editPhoneField.value = userData.phone || '';
+                    }
+                    if (editAddressField) {
+                        editAddressField.value = userData.address || '';
+                    }
+                } else {
+                    // Se non ci sono dati nel database, usa solo il displayName
+                    if (editNameField) {
+                        editNameField.value = userName;
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Errore nel caricamento dati utente:', error);
+                // In caso di errore, usa comunque il displayName se disponibile
+                if (editNameField) {
+                    editNameField.value = userName;
+                }
+                showMessage('Errore nel caricamento dei dati del profilo', 'warning');
+            });
+    } else {
+        // Se non c'è database, usa solo il displayName
+        if (editNameField) {
+            editNameField.value = userName;
+        }
+    }
 }
 
 function closeEditProfileModal() {
