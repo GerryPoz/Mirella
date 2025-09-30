@@ -281,6 +281,11 @@ function renderProductsTable() {
     const tbody = document.getElementById('products-table');
     tbody.innerHTML = products.map(product => {
         const category = categories.find(c => c.id === product.categoryId);
+        const isAvailable = product.available !== false; // Default true se non specificato
+        const availabilityStatus = isAvailable ? 'Disponibile' : 'Non Disponibile';
+        const availabilityClass = isAvailable ? 'status-available' : 'status-unavailable';
+        const toggleButtonText = isAvailable ? 'Nascondi' : 'Mostra';
+        
         return `
             <tr>
                 <td>
@@ -294,13 +299,36 @@ function renderProductsTable() {
                 <td>€${product.price.toFixed(2)}</td>
                 <td>${product.stock}</td>
                 <td>${product.unit}</td>
+                <td>
+                    <span class="availability-status ${availabilityClass}">${availabilityStatus}</span>
+                </td>
                 <td class="action-buttons">
+                    <button class="btn-small btn-toggle" onclick="toggleProductAvailability('${product.id}')">${toggleButtonText}</button>
                     <button class="btn-small btn-edit" onclick="editProduct('${product.id}')">Modifica</button>
                     <button class="btn-small btn-delete" onclick="deleteProduct('${product.id}')">Elimina</button>
                 </td>
             </tr>
         `;
     }).join('');
+}
+
+function toggleProductAvailability(id) {
+    const product = products.find(p => p.id === id);
+    if (!product) return;
+    
+    const newAvailability = product.available !== false ? false : true;
+    const statusText = newAvailability ? 'disponibile' : 'non disponibile';
+    
+    if (confirm(`Sei sicuro di voler rendere questo prodotto ${statusText}?`)) {
+        db.ref(`products/${id}`).update({
+            available: newAvailability,
+            updatedAt: firebase.database.ServerValue.TIMESTAMP
+        }).then(() => {
+            alert(`Prodotto reso ${statusText}!`);
+        }).catch(error => {
+            alert('Errore: ' + error.message);
+        });
+    }
 }
 
 function editProduct(id) {
