@@ -206,6 +206,54 @@
         <p>Cantone Cavallino, 167, 15033 Casale Monferrato AL | Tel: 347 229 9694 | Email: mirellaortofrutta@gmail.com</p>
     </footer>
 
+        <!-- Modal per Modifica Profilo -->
+    <div id="edit-profile-modal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeEditProfileModal()">&times;</button>
+            <h2>Modifica Profilo</h2>
+            <form id="edit-profile-form">
+                <div class="form-group">
+                    <label for="edit-name">Nome:</label>
+                    <input type="text" id="edit-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-phone">Telefono:</label>
+                    <input type="tel" id="edit-phone">
+                </div>
+                <div class="form-group">
+                    <label for="edit-address">Indirizzo:</label>
+                    <input type="text" id="edit-address">
+                </div>
+                <button type="submit" class="auth-btn">Salva Modifiche</button>
+                <button type="button" class="btn-secondary" onclick="closeEditProfileModal()">Annulla</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal per Cambia Password -->
+    <div id="change-password-modal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeChangePasswordModal()">&times;</button>
+            <h2>Cambia Password</h2>
+            <form id="change-password-form">
+                <div class="form-group">
+                    <label for="current-password">Password Attuale:</label>
+                    <input type="password" id="current-password" required>
+                </div>
+                <div class="form-group">
+                    <label for="new-password">Nuova Password:</label>
+                    <input type="password" id="new-password" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label for="confirm-password">Conferma Nuova Password:</label>
+                    <input type="password" id="confirm-password" required minlength="6">
+                </div>
+                <button type="submit" class="auth-btn">Cambia Password</button>
+                <button type="button" class="btn-secondary" onclick="closeChangePasswordModal()">Annulla</button>
+            </form>
+        </div>
+    </div>
+
     <!-- Firebase Scripts -->
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
