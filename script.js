@@ -771,47 +771,43 @@ function handleCheckout() {
         return;
     }
     
-    // Create order with structure expected by admin.js
+    // Prepara i dati utente da salvare/aggiornare
+    const userData = {
+        name: currentUser.displayName || 'Nome non disponibile',
+        email: currentUser.email,
+        phone: 'N/A', // Considera di aggiungere un campo nel form di registrazione
+        address: 'N/A' // Considera di aggiungere un campo nel form di registrazione
+    };
+    
+    // Crea l'ordine con la struttura corretta
     const order = {
         userId: currentUser.uid,
         userEmail: currentUser.email,
         items: cart,
-        totalAmount: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0), // Cambiato da 'total' a 'totalAmount'
+        totalAmount: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
         status: 'pending',
-        createdAt: firebase.database.ServerValue.TIMESTAMP, // Usa timestamp di Firebase invece di ISO string
-        pickupDate: 'Da definire' // Aggiungi campo pickupDate
+        createdAt: firebase.database.ServerValue.TIMESTAMP,
+        pickupDate: 'Da definire'
     };
     
-    // Save order to Firebase
-    db.ref('orders').push(order)
+    // Prima salva/aggiorna i dati utente, poi crea l'ordine
+    db.ref(`users/${currentUser.uid}`).set(userData)
         .then(() => {
-            console.log('Order created successfully');
+            console.log('Dati utente salvati/aggiornati con successo');
             
-            // Salva anche i dati del cliente per admin.js
-            const userData = {
-                name: currentUser.displayName || 'Nome non disponibile',
-                email: currentUser.email,
-                phone: 'N/A', // Potresti aggiungere un campo per il telefono nel form di registrazione
-                address: 'N/A' // Potresti aggiungere un campo per l'indirizzo
-            };
+            // Ora salva l'ordine
+            return db.ref('orders').push(order);
+        })
+        .then(() => {
+            console.log('Ordine creato con successo');
             
-            // Salva i dati utente se non esistono già
-            db.ref(`users/${currentUser.uid}`).once('value')
-                .then(snapshot => {
-                    if (!snapshot.exists()) {
-                        return db.ref(`users/${currentUser.uid}`).set(userData);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error saving user data:', error);
-                });
-            
+            // Reset del carrello e aggiornamento UI
             cart = [];
             updateCartUI();
             showMessage('Ordine inviato con successo! Ti contatteremo presto.', 'success');
         })
         .catch((error) => {
-            console.error('Error creating order:', error);
+            console.error('Errore durante il processo di checkout:', error);
             showMessage('Errore durante l\'invio dell\'ordine: ' + error.message, 'error');
         });
 }
