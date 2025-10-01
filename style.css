@@ -1448,3 +1448,23 @@ footer p {
 .btn-toggle:hover {
     background-color: #5a6268;
 }
+
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+    margin: 0.25rem;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+}
+
+.btn-danger:active {
+    background-color: #bd2130;
+}
