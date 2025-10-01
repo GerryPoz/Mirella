@@ -1106,9 +1106,10 @@ function editProfile() {
         showMessage('Devi essere loggato per modificare il profilo', 'error');
         return;
     }
-    
+
     // Popola i campi con i dati attuali
     document.getElementById('edit-name').value = currentUser.displayName || '';
+    document.getElementById('edit-email').value = currentUser.email || '';
     
     // Carica dati aggiuntivi dal database se disponibili
     if (db && currentUser.uid) {
