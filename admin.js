@@ -474,31 +474,46 @@ function renderOrdersTable() {
     
     // Per ogni ordine, carica anche i dati del cliente
     const orderPromises = orders.map(order => {
-        // Aggiungi logging per debug
         console.log('Caricamento dati per ordine:', order.id, 'userId:', order.userId);
         
         return db.ref(`users/${order.userId}`).once('value')
             .then(userSnapshot => {
                 const userData = userSnapshot.val();
-                console.log('Dati utente recuperati:', userData);
+                console.log('Dati utente recuperati per', order.userId, ':', userData);
                 
-                // Usa i dati dall'ordine stesso se disponibili, altrimenti dai dati utente
+                // Logica migliorata per il recupero dei dati
+                let customerName, customerEmail, customerPhone, customerAddress;
+                
+                if (userData) {
+                    // Se esistono dati utente nel database, usali
+                    customerName = userData.name || userData.displayName || 'Nome non disponibile';
+                    customerEmail = userData.email || order.userEmail || 'Email non disponibile';
+                    customerPhone = userData.phone && userData.phone !== 'N/A' ? userData.phone : 'Non specificato';
+                    customerAddress = userData.address && userData.address !== 'N/A' ? userData.address : 'Non specificato';
+                } else {
+                    // Se non ci sono dati utente, usa i dati dall'ordine
+                    customerName = order.userEmail ? order.userEmail.split('@')[0] : 'Nome non disponibile';
+                    customerEmail = order.userEmail || 'Email non disponibile';
+                    customerPhone = 'Non specificato';
+                    customerAddress = 'Non specificato';
+                }
+                
                 return {
                     ...order,
-                    customerName: userData?.name || order.userEmail?.split('@')[0] || 'Nome non disponibile',
-                    customerEmail: userData?.email || order.userEmail || 'Email non disponibile',
-                    customerPhone: userData?.phone || 'N/A',
-                    customerAddress: userData?.address || 'N/A'
+                    customerName,
+                    customerEmail,
+                    customerPhone,
+                    customerAddress
                 };
             })
             .catch(error => {
                 console.error('Errore nel caricamento dati utente per ordine', order.id, ':', error);
                 return {
                     ...order,
-                    customerName: order.userEmail?.split('@')[0] || 'Errore caricamento',
+                    customerName: order.userEmail ? order.userEmail.split('@')[0] : 'Errore caricamento',
                     customerEmail: order.userEmail || 'N/A',
-                    customerPhone: 'N/A',
-                    customerAddress: 'N/A'
+                    customerPhone: 'Errore caricamento',
+                    customerAddress: 'Errore caricamento'
                 };
             });
     });
@@ -562,6 +577,9 @@ function renderOrdersTable() {
                 </tr>
             `;
         }).join('');
+    }).catch(error => {
+        console.error('Errore nel rendering della tabella ordini:', error);
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Errore nel caricamento degli ordini</td></tr>';
     });
 }
 
