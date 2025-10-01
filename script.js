@@ -1308,3 +1308,94 @@ function handleChangePassword(e) {
             showMessage(errorMessage, 'error');
         });
 }
+
+// Funzione per eliminare il profilo utente
+function deleteProfile() {
+    if (!currentUser) {
+        showMessage('Devi essere loggato per eliminare il profilo', 'error');
+        return;
+    }
+    
+    // Doppia conferma per sicurezza
+    const firstConfirm = confirm('⚠️ ATTENZIONE: Stai per eliminare definitivamente il tuo account.\n\nQuesta azione NON può essere annullata e comporterà:\n• Perdita di tutti i tuoi dati\n• Cancellazione dello storico ordini\n• Impossibilità di recuperare l\'account\n\nSei sicuro di voler continuare?');
+    
+    if (!firstConfirm) {
+        return;
+    }
+    
+    const secondConfirm = confirm('🚨 ULTIMA CONFERMA\n\nDigita "ELIMINA" nella prossima finestra per confermare l\'eliminazione definitiva del tuo account.');
+    
+    if (!secondConfirm) {
+        return;
+    }
+    
+    const finalConfirm = prompt('Per confermare l\'eliminazione definitiva del tuo account, digita esattamente: ELIMINA');
+    
+    if (finalConfirm !== 'ELIMINA') {
+        showMessage('Eliminazione annullata. Il testo inserito non corrisponde.', 'info');
+        return;
+    }
+    
+    // Procedi con l'eliminazione
+    const userUid = currentUser.uid;
+    const userEmail = currentUser.email;
+    
+    showMessage('Eliminazione account in corso...', 'info');
+    
+    // Prima elimina i dati dal database
+    const deletePromises = [];
+    
+    // Elimina dati utente
+    if (db) {
+        deletePromises.push(db.ref(`users/${userUid}`).remove());
+        
+        // Elimina ordini dell'utente (opzionale - potresti voler mantenere per motivi amministrativi)
+        //deletePromises.push(
+        //    db.ref('orders').orderByChild('userId').equalTo(userUid).once('value')
+        //        .then(snapshot => {
+        //            const updates = {};
+        //            snapshot.forEach(child => {
+        //                updates[child.key] = null;
+        //            });
+        //            return db.ref('orders').update(updates);
+        //        })
+        //);
+    }
+    
+    // Esegui eliminazione dati dal database
+    Promise.all(deletePromises)
+        .then(() => {
+            console.log('Dati utente eliminati dal database');
+            // Ora elimina l'account Firebase Auth
+            return currentUser.delete();
+        })
+        .then(() => {
+            console.log('Account eliminato con successo');
+            showMessage('Account eliminato definitivamente. Arrivederci!', 'success');
+            
+            // Reindirizza alla home dopo 3 secondi
+            setTimeout(() => {
+                showSection('home');
+                // Ricarica la pagina per pulire completamente lo stato
+                window.location.reload();
+            }, 3000);
+        })
+        .catch(error => {
+            console.error('Errore durante l\'eliminazione dell\'account:', error);
+            
+            let errorMessage = 'Errore durante l\'eliminazione dell\'account';
+            
+            switch (error.code) {
+                case 'auth/requires-recent-login':
+                    errorMessage = 'Per motivi di sicurezza, devi effettuare nuovamente il login prima di eliminare l\'account. Effettua il logout, accedi di nuovo e riprova.';
+                    break;
+                case 'auth/user-not-found':
+                    errorMessage = 'Account non trovato.';
+                    break;
+                default:
+                    errorMessage += ': ' + error.message;
+            }
+            
+            showMessage(errorMessage, 'error');
+        });
+}
