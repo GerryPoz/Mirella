@@ -771,14 +771,6 @@ function handleCheckout() {
         return;
     }
     
-    // Prepara i dati utente da salvare/aggiornare
-    const userData = {
-        name: currentUser.displayName || 'Nome non disponibile',
-        email: currentUser.email,
-        phone: 'N/A', // Considera di aggiungere un campo nel form di registrazione
-        address: 'N/A' // Considera di aggiungere un campo nel form di registrazione
-    };
-    
     // Crea l'ordine con la struttura corretta
     const order = {
         userId: currentUser.uid,
@@ -790,11 +782,33 @@ function handleCheckout() {
         pickupDate: 'Da definire'
     };
     
-    // Prima salva/aggiorna i dati utente, poi crea l'ordine
-    db.ref(`users/${currentUser.uid}`).set(userData)
-        .then(() => {
-            console.log('Dati utente salvati/aggiornati con successo');
+    // Prima controlla se esistono già dati utente nel database
+    db.ref(`users/${currentUser.uid}`).once('value')
+        .then(snapshot => {
+            const existingUserData = snapshot.val();
             
+            // Prepara i dati utente preservando quelli esistenti
+            const userData = {
+                name: existingUserData?.name || currentUser.displayName || 'Nome non disponibile',
+                email: currentUser.email,
+                phone: existingUserData?.phone || 'N/A',
+                address: existingUserData?.address || 'N/A',
+                // Mantieni altri campi esistenti
+                ...(existingUserData?.createdAt && { createdAt: existingUserData.createdAt }),
+                updatedAt: firebase.database.ServerValue.TIMESTAMP
+            };
+            
+            // Salva/aggiorna i dati utente solo se necessario
+            if (!existingUserData) {
+                console.log('Creazione nuovi dati utente');
+                return db.ref(`users/${currentUser.uid}`).set(userData);
+            } else {
+                console.log('Dati utente esistenti preservati');
+                // Se i dati esistono già, non sovrascriverli
+                return Promise.resolve();
+            }
+        })
+        .then(() => {
             // Ora salva l'ordine
             return db.ref('orders').push(order);
         })
