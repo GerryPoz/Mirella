@@ -467,7 +467,6 @@ function deleteProduct(id) {
 function renderOrdersTable() {
     const tbody = document.getElementById('orders-table');
     
-    // Se non ci sono ordini
     if (orders.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Nessun ordine trovato</td></tr>';
         return;
@@ -475,27 +474,37 @@ function renderOrdersTable() {
     
     // Per ogni ordine, carica anche i dati del cliente
     const orderPromises = orders.map(order => {
+        // Aggiungi logging per debug
+        console.log('Caricamento dati per ordine:', order.id, 'userId:', order.userId);
+        
         return db.ref(`users/${order.userId}`).once('value')
             .then(userSnapshot => {
-                const userData = userSnapshot.val() || {};
+                const userData = userSnapshot.val();
+                console.log('Dati utente recuperati:', userData);
+                
+                // Usa i dati dall'ordine stesso se disponibili, altrimenti dai dati utente
                 return {
                     ...order,
-                    customerName: userData.name || 'Nome non disponibile',
-                    customerEmail: userData.email || 'Email non disponibile',
-                    customerPhone: userData.phone || 'N/A',
-                    customerAddress: userData.address || 'N/A'
+                    customerName: userData?.name || order.userEmail?.split('@')[0] || 'Nome non disponibile',
+                    customerEmail: userData?.email || order.userEmail || 'Email non disponibile',
+                    customerPhone: userData?.phone || 'N/A',
+                    customerAddress: userData?.address || 'N/A'
                 };
             })
-            .catch(() => ({
-                ...order,
-                customerName: 'Errore caricamento',
-                customerEmail: 'N/A',
-                customerPhone: 'N/A',
-                customerAddress: 'N/A'
-            }));
+            .catch(error => {
+                console.error('Errore nel caricamento dati utente per ordine', order.id, ':', error);
+                return {
+                    ...order,
+                    customerName: order.userEmail?.split('@')[0] || 'Errore caricamento',
+                    customerEmail: order.userEmail || 'N/A',
+                    customerPhone: 'N/A',
+                    customerAddress: 'N/A'
+                };
+            });
     });
     
     Promise.all(orderPromises).then(ordersWithCustomers => {
+        console.log('Ordini con dati cliente:', ordersWithCustomers);
         tbody.innerHTML = ordersWithCustomers.map(order => {
             const itemsList = order.items ? order.items.map(item => 
                 `<div class="order-item-detail">
