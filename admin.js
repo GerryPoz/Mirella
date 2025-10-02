@@ -464,6 +464,7 @@ function deleteProduct(id) {
 }
 
 // Gestione Ordini
+// Gestione Ordini
 function renderOrdersTable() {
     const tbody = document.getElementById('orders-table');
     
@@ -471,26 +472,48 @@ function renderOrdersTable() {
         tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Nessun ordine trovato</td></tr>';
         return;
     }
+
+    console.log('Rendering orders table. Total orders:', orders.length);
     
     // Per ogni ordine, carica anche i dati del cliente
     const orderPromises = orders.map(order => {
-        console.log('Caricamento dati per ordine:', order.id, 'userId:', order.userId);
+        console.log('Processing order:', {
+            orderId: order.id,
+            userId: order.userId,
+            userEmail: order.userEmail
+        });
+        
+        // Verifica che userId esista
+        if (!order.userId) {
+            console.warn('Order without userId:', order.id);
+            return Promise.resolve({
+                ...order,
+                customerName: order.userEmail ? order.userEmail.split('@')[0] : 'Utente sconosciuto',
+                customerEmail: order.userEmail || 'Email non disponibile',
+                customerPhone: 'Non specificato',
+                customerAddress: 'Non specificato'
+            });
+        }
         
         return db.ref(`users/${order.userId}`).once('value')
             .then(userSnapshot => {
                 const userData = userSnapshot.val();
-                console.log('Dati utente recuperati per', order.userId, ':', userData);
+                console.log(`User data for ${order.userId}:`, userData);
                 
                 // Logica migliorata per il recupero dei dati
                 let customerName, customerEmail, customerPhone, customerAddress;
                 
-                if (userData) {
+                if (userData && typeof userData === 'object') {
                     // Se esistono dati utente nel database, usali
-                    customerName = userData.name || userData.displayName || 'Nome non disponibile';
+                    customerName = userData.name || userData.displayName || 
+                                 (order.userEmail ? order.userEmail.split('@')[0] : 'Nome non disponibile');
                     customerEmail = userData.email || order.userEmail || 'Email non disponibile';
-                    customerPhone = userData.phone && userData.phone !== 'N/A' ? userData.phone : 'Non specificato';
-                    customerAddress = userData.address && userData.address !== 'N/A' ? userData.address : 'Non specificato';
+                    customerPhone = (userData.phone && userData.phone !== 'N/A' && userData.phone.trim() !== '') 
+                                  ? userData.phone : 'Non specificato';
+                    customerAddress = (userData.address && userData.address !== 'N/A' && userData.address.trim() !== '') 
+                                    ? userData.address : 'Non specificato';
                 } else {
+                    console.warn(`No user data found for userId: ${order.userId}`);
                     // Se non ci sono dati utente, usa i dati dall'ordine
                     customerName = order.userEmail ? order.userEmail.split('@')[0] : 'Nome non disponibile';
                     customerEmail = order.userEmail || 'Email non disponibile';
@@ -507,19 +530,29 @@ function renderOrdersTable() {
                 };
             })
             .catch(error => {
-                console.error('Errore nel caricamento dati utente per ordine', order.id, ':', error);
+                console.error(`Error loading user data for order ${order.id}, userId ${order.userId}:`, error);
+                
+                // Gestione dettagliata degli errori
+                let errorType = 'Errore sconosciuto';
+                if (error.code === 'PERMISSION_DENIED') {
+                    errorType = 'Permessi negati';
+                } else if (error.code === 'NETWORK_ERROR') {
+                    errorType = 'Errore di rete';
+                }
+                
                 return {
                     ...order,
-                    customerName: order.userEmail ? order.userEmail.split('@')[0] : 'Errore caricamento',
+                    customerName: order.userEmail ? order.userEmail.split('@')[0] : `Errore: ${errorType}`,
                     customerEmail: order.userEmail || 'N/A',
-                    customerPhone: 'Errore caricamento',
-                    customerAddress: 'Errore caricamento'
+                    customerPhone: `Errore: ${errorType}`,
+                    customerAddress: `Errore: ${errorType}`
                 };
             });
     });
     
     Promise.all(orderPromises).then(ordersWithCustomers => {
-        console.log('Ordini con dati cliente:', ordersWithCustomers);
+        console.log('Orders with customer data:', ordersWithCustomers);
+        
         tbody.innerHTML = ordersWithCustomers.map(order => {
             const itemsList = order.items ? order.items.map(item => 
                 `<div class="order-item-detail">
@@ -578,8 +611,8 @@ function renderOrdersTable() {
             `;
         }).join('');
     }).catch(error => {
-        console.error('Errore nel rendering della tabella ordini:', error);
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Errore nel caricamento degli ordini</td></tr>';
+        console.error('Error rendering orders table:', error);
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: red;">Errore nel caricamento degli ordini. Controlla la console per dettagli.</td></tr>';
     });
 }
 
