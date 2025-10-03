@@ -322,6 +322,39 @@
                 width: 100%;
             }
         }
+
+                .order-details-content {
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        
+        .pickup-details {
+            grid-column: 1 / -1;
+            margin-top: 15px;
+            padding: 15px;
+            background: #e8f5e8;
+            border-radius: 5px;
+            border-left: 4px solid #28a745;
+        }
+        
+        .pickup-details h4 {
+            color: #155724;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        
+        .pickup-details p {
+            margin: 5px 0;
+            color: #155724;
+        }
+        
+        @media (max-width: 768px) {
+            .order-details-content {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
