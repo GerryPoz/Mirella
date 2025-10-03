@@ -464,7 +464,6 @@ function deleteProduct(id) {
 }
 
 // Gestione Ordini
-// Gestione Ordini
 function renderOrdersTable() {
     const tbody = document.getElementById('orders-table');
     
@@ -561,6 +560,20 @@ function renderOrdersTable() {
                 </div>`
             ).join('') : 'Nessun prodotto';
             
+            // Formatta la data e l'orario di ritiro per la visualizzazione nella tabella
+            let pickupDisplayText = 'Da definire';
+            if (order.pickupDate && order.pickupDate !== 'Da definire') {
+                if (order.pickupDateRaw && order.pickupTime) {
+                    // Nuovo formato con data e orario separati
+                    const formattedDate = new Date(order.pickupDateRaw).toLocaleDateString('it-IT');
+                    const timeText = order.pickupTime === 'mattina' ? 'Mattina' : 'Pomeriggio';
+                    pickupDisplayText = `${formattedDate}<br><small>${timeText}</small>`;
+                } else {
+                    // Formato precedente (stringa completa)
+                    pickupDisplayText = order.pickupDate;
+                }
+            }
+            
             return `
                 <tr>
                     <td>
@@ -575,7 +588,7 @@ function renderOrdersTable() {
                         </div>
                     </td>
                     <td>${new Date(order.createdAt).toLocaleDateString()}</td>
-                    <td>${order.pickupDate}</td>
+                    <td>${pickupDisplayText}</td>
                     <td>€${order.totalAmount.toFixed(2)}</td>
                     <td>
                         <select onchange="updateOrderStatus('${order.id}', this.value)">
@@ -604,6 +617,20 @@ function renderOrdersTable() {
                             <div class="order-products">
                                 <h4>Prodotti Ordinati:</h4>
                                 ${itemsList}
+                            </div>
+                            <div class="pickup-details" style="grid-column: 1 / -1; margin-top: 15px; padding: 15px; background: #e8f5e8; border-radius: 5px; border-left: 4px solid #28a745;">
+                                <h4 style="color: #155724; margin-top: 0;">Dettagli Ritiro:</h4>
+                                ${order.pickupDateRaw && order.pickupTime ? `
+                                    <p><strong>Data prevista:</strong> ${new Date(order.pickupDateRaw).toLocaleDateString('it-IT', { 
+                                        weekday: 'long', 
+                                        year: 'numeric', 
+                                        month: 'long', 
+                                        day: 'numeric' 
+                                    })}</p>
+                                    <p><strong>Orario:</strong> ${order.pickupTime === 'mattina' ? 'Mattina (9:00 - 12:00)' : 'Pomeriggio (15:00 - 18:00)'}</p>
+                                ` : `
+                                    <p><strong>Ritiro:</strong> ${order.pickupDate || 'Da definire'}</p>
+                                `}
                             </div>
                         </div>
                     </td>
