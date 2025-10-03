@@ -260,6 +260,44 @@
         </div>
     </div>
 
+    <!-- Modal per Checkout -->
+    <div id="checkout-modal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeCheckoutModal()">&times;</button>
+            <h2>Completa l'Ordine</h2>
+            
+            <div id="order-summary" class="order-summary-section">
+                <!-- Il riepilogo dell'ordine verrà inserito qui -->
+            </div>
+            
+            <form id="checkout-form">
+                <div class="form-group">
+                    <label for="pickup-date">Data di Ritiro Prevista:</label>
+                    <input type="date" id="pickup-date" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="pickup-time">Orario Preferito:</label>
+                    <select id="pickup-time" required>
+                        <option value="">Seleziona orario</option>
+                        <option value="mattina">Mattina (9:00 - 12:00)</option>
+                        <option value="pomeriggio">Pomeriggio (15:00 - 18:00)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="order-notes">Note aggiuntive (opzionale):</label>
+                    <textarea id="order-notes" placeholder="Inserisci eventuali note per l'ordine..." rows="3"></textarea>
+                </div>
+                
+                <div class="checkout-buttons">
+                    <button type="submit" class="auth-btn">Conferma Ordine</button>
+                    <button type="button" class="btn-secondary" onclick="closeCheckoutModal()">Annulla</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Firebase Scripts -->
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
