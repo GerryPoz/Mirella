@@ -551,6 +551,13 @@ function renderOrdersTable() {
     
     Promise.all(orderPromises).then(ordersWithCustomers => {
         console.log('Orders with customer data:', ordersWithCustomers);
+
+        // Ordina gli ordini per data di creazione (più recenti prima)
+        ordersWithCustomers.sort((a, b) => {
+            const dateA = a.createdAt || 0;
+            const dateB = b.createdAt || 0;
+            return dateB - dateA; // Ordine decrescente (più recenti prima)
+        });
         
         tbody.innerHTML = ordersWithCustomers.map(order => {
             const itemsList = order.items ? order.items.map(item => 
