@@ -184,7 +184,13 @@ function setupEventListeners() {
     // Checkout
     const checkoutBtn = document.getElementById('checkout-btn');
     if (checkoutBtn) {
-        checkoutBtn.addEventListener('click', handleCheckout);
+        checkoutBtn.addEventListener('click', showCheckoutModal);
+    }
+
+    // Checkout form
+    const checkoutForm = document.getElementById('checkout-form');
+    if (checkoutForm) {
+        checkoutForm.addEventListener('submit', handleCheckout);
     }
 
     // Event listeners per i form del profilo
@@ -202,6 +208,7 @@ function setupEventListeners() {
     window.addEventListener('click', (e) => {
         const editModal = document.getElementById('edit-profile-modal');
         const passwordModal = document.getElementById('change-password-modal');
+        const checkoutModal = document.getElementById('checkout-modal');
         
         if (e.target === editModal) {
             closeEditProfileModal();
@@ -209,9 +216,150 @@ function setupEventListeners() {
         if (e.target === passwordModal) {
             closeChangePasswordModal();
         }
+        if (e.target === checkoutModal) {
+            closeCheckoutModal();
+        }
     });
     
     console.log('Event listeners setup complete');
+}
+
+// Funzione per mostrare il modal di checkout
+function showCheckoutModal() {
+    if (!currentUser) {
+        showMessage('Devi effettuare il login per procedere al checkout', 'error');
+        openLoginModal();
+        return;
+    }
+    
+    if (cart.length === 0) {
+        showMessage('Il carrello è vuoto', 'error');
+        return;
+    }
+    
+    // Popola il riepilogo dell'ordine
+    const orderSummary = document.getElementById('order-summary');
+    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    
+    const summaryHTML = `
+        <h4>Riepilogo Ordine</h4>
+        ${cart.map(item => `
+            <div class="summary-item">
+                <span>${item.name} x${item.quantity} ${item.unit || 'pz'}</span>
+                <span>€${(item.price * item.quantity).toFixed(2)}</span>
+            </div>
+        `).join('')}
+        <div class="summary-total">
+            <strong>Totale: €${total.toFixed(2)}</strong>
+        </div>
+    `;
+    
+    orderSummary.innerHTML = summaryHTML;
+    
+    // Imposta la data minima a oggi
+    const pickupDateInput = document.getElementById('pickup-date');
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    pickupDateInput.min = tomorrow.toISOString().split('T')[0];
+    
+    // Mostra il modal
+    const modal = document.getElementById('checkout-modal');
+    modal.style.display = 'flex';
+}
+
+// Funzione per chiudere il modal di checkout
+function closeCheckoutModal() {
+    const modal = document.getElementById('checkout-modal');
+    modal.style.display = 'none';
+    
+    // Reset del form
+    const form = document.getElementById('checkout-form');
+    if (form) {
+        form.reset();
+    }
+}
+
+function handleCheckout(e) {
+    e.preventDefault();
+    
+    if (!currentUser) {
+        showMessage('Devi effettuare il login per procedere al checkout', 'error');
+        openLoginModal();
+        return;
+    }
+    
+    if (cart.length === 0) {
+        showMessage('Il carrello è vuoto', 'error');
+        return;
+    }
+    
+    // Ottieni i dati dal form
+    const pickupDate = document.getElementById('pickup-date').value;
+    const pickupTime = document.getElementById('pickup-time').value;
+    const notes = document.getElementById('order-notes').value;
+    
+    // Formatta la data e l'orario
+    const formattedDate = new Date(pickupDate).toLocaleDateString('it-IT');
+    const timeText = pickupTime === 'mattina' ? 'Mattina (9:00-12:00)' : 'Pomeriggio (15:00-18:00)';
+    const pickupInfo = `${formattedDate} - ${timeText}`;
+    
+    // Crea l'ordine con la struttura corretta
+    const order = {
+        userId: currentUser.uid,
+        userEmail: currentUser.email,
+        items: cart,
+        totalAmount: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+        status: 'pending',
+        createdAt: firebase.database.ServerValue.TIMESTAMP,
+        pickupDate: pickupInfo,
+        pickupDateRaw: pickupDate,
+        pickupTime: pickupTime,
+        notes: notes || ''
+    };
+    
+    // Prima controlla se esistono già dati utente nel database
+    db.ref(`users/${currentUser.uid}`).once('value')
+        .then(snapshot => {
+            const existingUserData = snapshot.val();
+            
+            // Prepara i dati utente preservando quelli esistenti
+            const userData = {
+                name: existingUserData?.name || currentUser.displayName || 'Nome non disponibile',
+                email: currentUser.email,
+                phone: existingUserData?.phone || 'N/A',
+                address: existingUserData?.address || 'N/A',
+                // Mantieni altri campi esistenti
+                ...(existingUserData?.createdAt && { createdAt: existingUserData.createdAt }),
+                updatedAt: firebase.database.ServerValue.TIMESTAMP
+            };
+            
+            // Salva/aggiorna i dati utente solo se necessario
+            if (!existingUserData) {
+                console.log('Creazione nuovi dati utente');
+                return db.ref(`users/${currentUser.uid}`).set(userData);
+            } else {
+                console.log('Dati utente esistenti preservati');
+                return Promise.resolve();
+            }
+        })
+        .then(() => {
+            // Ora salva l'ordine
+            return db.ref('orders').push(order);
+        })
+        .then(() => {
+            console.log('Ordine creato con successo');
+            
+            // Reset del carrello e aggiornamento UI
+            cart = [];
+            updateCartUI();
+            closeCheckoutModal();
+            showMessage(`Ordine inviato con successo!\nRitiro previsto: ${pickupInfo}\nTi contatteremo presto per confermare.`, 'success');
+        })
+        .catch((error) => {
+            console.error('Errore durante il processo di checkout:', error);
+            showMessage('Errore durante l\'invio dell\'ordine: ' + error.message, 'error');
+        });
 }
 
 // Handle navigation
