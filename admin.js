@@ -66,6 +66,13 @@ function showAdminSection(sectionId, element) {
     });
     
     document.getElementById(sectionId).classList.add('active');
+    // Mostra anche la sezione "Statistiche Vendite" insieme a "Statistiche"
+    if (sectionId === 'stats') {
+        const salesSection = document.getElementById('sales-stats');
+        if (salesSection) {
+            salesSection.classList.add('active');
+        }
+    }
     if (element) {
         element.classList.add('active');
     }
