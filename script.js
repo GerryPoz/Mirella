@@ -148,6 +148,11 @@ function setupEventListeners() {
             e.preventDefault();
             showSection('ordini');
             loadUserOrders();
+            // Chiudi il menu mobile se aperto
+            const navMenu = document.getElementById('nav-menu');
+            if (navMenu) {
+                navMenu.classList.remove('show');
+            }
         });
     }
 
@@ -365,6 +370,12 @@ function handleCheckout(e) {
 // Handle navigation
 function handleNavigation(e) {
     e.preventDefault();
+
+    // Chiudi il menu mobile se aperto
+    const navMenu = document.getElementById('nav-menu');
+    if (navMenu) {
+        navMenu.classList.remove('show');
+    }
     
     // Escludi link speciali (login, register, logout, etc.)
     const specialLinks = ['login-link', 'show-register', 'show-login', 'logout-link', 'orders-link', 'user-menu'];
