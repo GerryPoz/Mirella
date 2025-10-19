@@ -4,6 +4,14 @@ let orders = [];
 
 document.addEventListener('DOMContentLoaded', function() {
     loadData();
+    // Aggiorna statistiche quando cambiano le date del filtro
+    const startInput = document.getElementById('filter-start-date');
+    const endInput = document.getElementById('filter-end-date');
+    [startInput, endInput].forEach(el => {
+        if (el) {
+            ['change', 'input'].forEach(evt => el.addEventListener(evt, () => updateStats()));
+        }
+    });
 });
 
 // Funzione per convertire file in base64
@@ -712,60 +720,79 @@ function updateStats() {
     const elPendingOrders = document.getElementById('pending-orders');
     if (elPendingOrders) elPendingOrders.textContent = pendingOrders;
 
-    // Aggregazioni per articolo e per mese
-    const itemTotals = {};
-    const itemUnits = {};
-    const monthlyItemTotals = {};
+    // Filtro intervallo date (applicato ai totali per articolo)
+    const startEl = document.getElementById('filter-start-date');
+    const endEl = document.getElementById('filter-end-date');
+    const startTs = (startEl && startEl.value) ? new Date(startEl.value + 'T00:00:00').getTime() : null;
+    const endTs = (endEl && endEl.value) ? new Date(endEl.value + 'T23:59:59').getTime() : null;
+
+    // Aggregazioni
+    const itemTotals = {};       // filtrati per intervallo di date
+    const itemUnits = {};        // unità per articolo
+    const monthlyItemTotals = {}; // storico mensile (non filtrato)
 
     if (Array.isArray(orders)) {
         orders.forEach(order => {
-            const createdAtNum = Number(order.createdAt) || null;
+            const created = (typeof order.createdAt === 'number')
+                ? order.createdAt
+                : Number(order.createdAt);
+
+            // Chiave mese per tabella mensile
             let monthKey = 'Senza data';
-            if (createdAtNum) {
-                const d = new Date(createdAtNum);
-                const y = d.getFullYear();
-                const m = String(d.getMonth() + 1).padStart(2, '0');
-                monthKey = `${y}-${m}`; // formato YYYY-MM
+            if (!isNaN(created) && created > 0) {
+                const d = new Date(created);
+                monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
             }
 
             // Normalizza items: supporta array o oggetto
-            let itemsArray = [];
-            if (Array.isArray(order.items)) {
-                itemsArray = order.items;
-            } else if (order.items && typeof order.items === 'object') {
-                itemsArray = Object.values(order.items)
-                    .filter(it => it && typeof it === 'object' && ('name' in it || 'quantity' in it));
-            }
+            const itemsArray = Array.isArray(order.items)
+                ? order.items
+                : (order.items && typeof order.items === 'object'
+                    ? Object.values(order.items).filter(it => it && typeof it === 'object')
+                    : []);
 
+            // Popola storico mensile (non filtrato)
             itemsArray.forEach(item => {
-                const name = (item && item.name) ? item.name : 'Senza nome';
-                const qty = Number(item && item.quantity) || 0;
-                const unit = (item && item.unit) ? item.unit : '';
-
-                itemTotals[name] = (itemTotals[name] || 0) + qty;
-                if (unit && !itemUnits[name]) itemUnits[name] = unit;
+                const name = item.name || 'Senza nome';
+                const qty = Number(item.quantity) || 0;
+                if (item.unit && !itemUnits[name]) itemUnits[name] = item.unit;
 
                 if (!monthlyItemTotals[monthKey]) monthlyItemTotals[monthKey] = {};
                 monthlyItemTotals[monthKey][name] = (monthlyItemTotals[monthKey][name] || 0) + qty;
             });
+
+            // Verifica intervallo per i totali filtrati
+            let inRange = true;
+            if (startTs !== null && (isNaN(created) || created < startTs)) inRange = false;
+            if (endTs !== null && (isNaN(created) || created > endTs)) inRange = false;
+
+            if (inRange) {
+                itemsArray.forEach(item => {
+                    const name = item.name || 'Senza nome';
+                    const qty = Number(item.quantity) || 0;
+                    const unit = item.unit || '';
+
+                    itemTotals[name] = (itemTotals[name] || 0) + qty;
+                    if (unit && !itemUnits[name]) itemUnits[name] = unit;
+                });
+            }
         });
     }
 
-    // Render: quantità totali per articolo
+    // Render: Quantità vendute per articolo (filtrate)
     const itemTotalsTable = document.getElementById('item-totals-table');
     if (itemTotalsTable) {
         const rows = Object.keys(itemTotals)
             .sort((a, b) => a.localeCompare(b))
             .map(name => {
-                const qty = itemTotals[name];
                 const unit = itemUnits[name] ? ` ${itemUnits[name]}` : '';
-                return `<tr><td>${name}</td><td>${qty}${unit}</td></tr>`;
+                return `<tr><td>${name}</td><td>${itemTotals[name]}${unit}</td></tr>`;
             })
             .join('');
         itemTotalsTable.innerHTML = rows || '<tr><td colspan="2" style="text-align:center;">Nessun dato</td></tr>';
     }
 
-    // Render: quantità per mese (dettaglio per articolo)
+    // Render: Quantità per mese (storico non filtrato)
     const monthlyTable = document.getElementById('monthly-item-totals');
     if (monthlyTable) {
         const rows = Object.entries(monthlyItemTotals)
@@ -776,7 +803,7 @@ function updateStats() {
             })
             .map(([key, items]) => {
                 const label = key !== 'Senza data'
-                    ? new Date(`${key}-01`).toLocaleDateString('it-IT', { month: 'long', year: 'numeric' })
+                    ? new Date(`${key}-01T00:00:00`).toLocaleDateString('it-IT', { month: 'long', year: 'numeric' })
                     : 'Senza data';
                 const detail = Object.entries(items)
                     .sort((a, b) => b[1] - a[1])
