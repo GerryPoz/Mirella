@@ -465,34 +465,43 @@
     </div>
 
     <div id="sales-stats" class="admin-section">
-    <h2>Statistiche Vendite</h2>
-    <div class="grid">
-        <div class="card">
-            <h3>Quantità vendute per articolo</h3>
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Articolo</th>
-                        <th>Quantità</th>
-                    </tr>
-                </thead>
-                <tbody id="item-totals-table"></tbody>
-            </table>
-        </div>
-        <div class="card">
-            <h3>Quantità per mese (per articolo)</h3>
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Mese</th>
-                        <th>Dettaglio per articolo</th>
-                    </tr>
-                </thead>
-                <tbody id="monthly-item-totals"></tbody>
-            </table>
+        <h2>Statistiche Vendite</h2>
+        <div class="grid">
+            <div class="card">
+                <h3>Quantità vendute per articolo</h3>
+    
+                <!-- Filtro intervallo date -->
+                <div class="form-inline" style="margin-bottom: 1rem;">
+                    <label for="filter-start-date">Da:</label>
+                    <input type="date" id="filter-start-date">
+                    <label for="filter-end-date">A:</label>
+                    <input type="date" id="filter-end-date">
+                </div>
+    
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Articolo</th>
+                            <th>Quantità</th>
+                        </tr>
+                    </thead>
+                    <tbody id="item-totals-table"></tbody>
+                </table>
+            </div>
+            <div class="card">
+                <h3>Quantità per mese (per articolo)</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Mese</th>
+                            <th>Dettaglio per articolo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="monthly-item-totals"></tbody>
+                </table>
+            </div>
         </div>
     </div>
-</div>
 
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app-compat.js"></script>
