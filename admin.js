@@ -681,15 +681,108 @@ function deleteOrder(id) {
 
 // Statistiche
 function updateStats() {
-    const totalOrders = orders.length;
-    const totalRevenue = orders.reduce((sum, order) => sum + order.totalAmount, 0);
-    const activeProducts = products.filter(p => p.stock > 0).length;
-    const pendingOrders = orders.filter(o => o.status === 'pending').length;
-    
-    document.getElementById('total-orders').textContent = totalOrders;
-    document.getElementById('total-revenue').textContent = `€${totalRevenue.toFixed(2)}`;
-    document.getElementById('active-products').textContent = activeProducts;
-    document.getElementById('pending-orders').textContent = pendingOrders;
+    // Metriche base
+    const totalOrders = Array.isArray(orders) ? orders.length : 0;
+    const totalRevenue = Array.isArray(orders)
+        ? orders.reduce((sum, order) => sum + (Number(order.totalAmount) || 0), 0)
+        : 0;
+    const activeProducts = Array.isArray(products)
+        ? products.filter(p => (Number(p.stock) || 0) > 0).length
+        : 0;
+    const pendingOrders = Array.isArray(orders)
+        ? orders.filter(o => o.status === 'pending').length
+        : 0;
+
+    const elTotalOrders = document.getElementById('total-orders');
+    if (elTotalOrders) elTotalOrders.textContent = totalOrders;
+
+    const elTotalRevenue = document.getElementById('total-revenue');
+    if (elTotalRevenue) elTotalRevenue.textContent = `€${totalRevenue.toFixed(2)}`;
+
+    const elActiveProducts = document.getElementById('active-products');
+    if (elActiveProducts) elActiveProducts.textContent = activeProducts;
+
+    const elPendingOrders = document.getElementById('pending-orders');
+    if (elPendingOrders) elPendingOrders.textContent = pendingOrders;
+
+    // Aggregazioni per articolo e per mese
+    const itemTotals = {};
+    const itemUnits = {};
+    const monthlyItemTotals = {};
+
+    if (Array.isArray(orders)) {
+        orders.forEach(order => {
+            const createdAtNum = Number(order.createdAt) || null;
+            let monthKey = 'Senza data';
+            if (createdAtNum) {
+                const d = new Date(createdAtNum);
+                const y = d.getFullYear();
+                const m = String(d.getMonth() + 1).padStart(2, '0');
+                monthKey = `${y}-${m}`; // formato YYYY-MM
+            }
+
+            // Normalizza items: supporta array o oggetto
+            let itemsArray = [];
+            if (Array.isArray(order.items)) {
+                itemsArray = order.items;
+            } else if (order.items && typeof order.items === 'object') {
+                itemsArray = Object.values(order.items)
+                    .filter(it => it && typeof it === 'object' && ('name' in it || 'quantity' in it));
+            }
+
+            itemsArray.forEach(item => {
+                const name = (item && item.name) ? item.name : 'Senza nome';
+                const qty = Number(item && item.quantity) || 0;
+                const unit = (item && item.unit) ? item.unit : '';
+
+                itemTotals[name] = (itemTotals[name] || 0) + qty;
+                if (unit && !itemUnits[name]) itemUnits[name] = unit;
+
+                if (!monthlyItemTotals[monthKey]) monthlyItemTotals[monthKey] = {};
+                monthlyItemTotals[monthKey][name] = (monthlyItemTotals[monthKey][name] || 0) + qty;
+            });
+        });
+    }
+
+    // Render: quantità totali per articolo
+    const itemTotalsTable = document.getElementById('item-totals-table');
+    if (itemTotalsTable) {
+        const rows = Object.keys(itemTotals)
+            .sort((a, b) => a.localeCompare(b))
+            .map(name => {
+                const qty = itemTotals[name];
+                const unit = itemUnits[name] ? ` ${itemUnits[name]}` : '';
+                return `<tr><td>${name}</td><td>${qty}${unit}</td></tr>`;
+            })
+            .join('');
+        itemTotalsTable.innerHTML = rows || '<tr><td colspan="2" style="text-align:center;">Nessun dato</td></tr>';
+    }
+
+    // Render: quantità per mese (dettaglio per articolo)
+    const monthlyTable = document.getElementById('monthly-item-totals');
+    if (monthlyTable) {
+        const rows = Object.entries(monthlyItemTotals)
+            .sort((a, b) => {
+                if (a[0] === 'Senza data') return 1;
+                if (b[0] === 'Senza data') return -1;
+                return b[0].localeCompare(a[0]); // mesi recenti in alto
+            })
+            .map(([key, items]) => {
+                const label = key !== 'Senza data'
+                    ? new Date(`${key}-01`).toLocaleDateString('it-IT', { month: 'long', year: 'numeric' })
+                    : 'Senza data';
+                const detail = Object.entries(items)
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([name, qty]) => {
+                        const unit = itemUnits[name] ? ` ${itemUnits[name]}` : '';
+                        return `<div><strong>${name}</strong>: ${qty}${unit}</div>`;
+                    })
+                    .join('');
+                return `<tr><td>${label}</td><td>${detail || 'Nessun dato'}</td></tr>`;
+            })
+            .join('');
+        monthlyTable.innerHTML = rows || '<tr><td colspan="2" style="text-align:center;">Nessun dato</td></tr>';
+    }
 }
 
 function closeEditModal() {
